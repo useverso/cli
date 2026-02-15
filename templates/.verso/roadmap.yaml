@@ -10,6 +10,14 @@
 #   3. Set the "now" horizon to point at that milestone
 #   4. Add criteria -- these become your definition of done
 #   5. As you complete milestones, move them through the horizons
+#
+# Tracking Fields:
+#   Milestones:
+#     - status: planned | active | completed
+#     - started_at: ISO timestamp, set when first item moves to Building
+#     - completed_at: ISO timestamp, set when all criteria are met
+#   Criteria:
+#     - status: pending | in_progress | done
 
 vision: ""  # Your product's north star in one sentence
 
@@ -37,20 +45,32 @@ milestones:
   mvp:
     name: "MVP"
     goal: ""  # e.g. "A user can complete the core workflow end-to-end"
+    status: planned            # planned | active | completed
+    started_at: ""             # ISO timestamp, set when first item moves to Building
+    completed_at: ""           # ISO timestamp, set when all criteria are met
     criteria:
       - id: core-feature
         description: ""  # A specific, testable capability
+        status: pending  # pending | in_progress | done
         issues: []       # GitHub issue numbers that satisfy this criterion
     exit_criteria:
-      - "Zero critical bugs"
-      - "Core user flows tested"
-      - "TypeScript compiles clean"
+      - description: "Zero critical bugs"
+        status: pending  # pending | in_progress | done
+      - description: "Core user flows tested"
+        status: pending
+      - description: "TypeScript compiles clean"
+        status: pending
 
   polish:
     name: "Polish"
     goal: ""  # e.g. "The product feels professional and handles edge cases"
+    status: planned            # planned | active | completed
+    started_at: ""             # ISO timestamp, set when first item moves to Building
+    completed_at: ""           # ISO timestamp, set when all criteria are met
     depends_on: [mvp]
     criteria: []    # Define when you get here
     exit_criteria:
-      - "Zero known bugs above low severity"
-      - "Performance within acceptable thresholds"
+      - description: "Zero known bugs above low severity"
+        status: pending  # pending | in_progress | done
+      - description: "Performance within acceptable thresholds"
+        status: pending

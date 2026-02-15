@@ -45,6 +45,29 @@ wip:
   pr_ready: 5          # Max PRs sitting in the review queue
 
 # ---------------------------------------------------------------------------
+# CI / Continuous Integration
+# ---------------------------------------------------------------------------
+# CI checks act as transition guards in the state machine.
+# Building → Verifying requires all checks to pass when block_transition is true.
+ci:
+  required_checks:
+    - typecheck
+    - tests
+    - lint
+  block_transition: true    # if true, Builder must confirm all checks pass before PR
+
+# ---------------------------------------------------------------------------
+# Quality Gates
+# ---------------------------------------------------------------------------
+# Quality gates affect the Reviewer's verdict.
+# "block" = issues force REQUEST_CHANGES. "warn" = issues are flagged but don't block.
+quality:
+  security_gate: warn       # warn | block
+  accessibility_gate: warn  # warn | block
+  min_coverage: 80          # minimum test coverage percentage (0 to disable)
+  require_tests: true       # Builder must include tests for new code
+
+# ---------------------------------------------------------------------------
 # Board Provider
 # ---------------------------------------------------------------------------
 # Where work items live. The Pilot reads and updates this board.
@@ -74,6 +97,29 @@ debt:
   audit_trigger: milestone    # When to run a debt audit: milestone | weekly | manual
 
 # ---------------------------------------------------------------------------
+# Dependency Management
+# ---------------------------------------------------------------------------
+# How automated dependency updates (Dependabot, Renovate) are handled.
+dependencies:
+  auto_capture: true         # auto-create work items from dependency alerts
+  default_type: chore        # work type for dependency updates
+  default_autonomy: 4        # autonomy level for dependency updates
+  security_patches: hotfix   # treat security patches as hotfixes
+
+# ---------------------------------------------------------------------------
+# Incident Response
+# ---------------------------------------------------------------------------
+# Severity-based overrides for urgent production issues.
+incidents:
+  severity_override: true
+  critical:
+    autonomy: 3              # skip spec approval, approve only PR
+    wip_override: true        # ignore WIP limits for critical incidents
+  major:
+    autonomy: 3
+    wip_override: false       # respect WIP limits
+
+# ---------------------------------------------------------------------------
 # Cost Tracking
 # ---------------------------------------------------------------------------
 # Every work item tracks token usage and developer time so you can calculate
@@ -88,3 +134,20 @@ costs:
     simple_item_hours: 4      # Baseline hours for a simple task (traditional)
     medium_item_hours: 12     # Baseline hours for a medium task (traditional)
     complex_item_hours: 32    # Baseline hours for a complex task (traditional)
+
+# ---------------------------------------------------------------------------
+# Monitoring (planned)
+# ---------------------------------------------------------------------------
+# Production monitoring integration. When enabled, monitoring alerts can
+# auto-capture work items on the board.
+#
+# This is a planned extension point. To use it today, report production
+# issues to the Pilot conversationally — it will classify and route them
+# as hotfixes or bugs.
+#
+# monitoring:
+#   enabled: false
+#   providers: []           # e.g., [sentry, datadog, vercel-analytics]
+#   auto_capture:
+#     errors: true          # auto-create Bug items from error spikes
+#     performance: false    # auto-create items from performance degradation
