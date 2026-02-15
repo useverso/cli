@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { cp, readFile, writeFile, appendFile } from 'node:fs/promises';
+import { cp, readFile, writeFile, appendFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { execFile as execFileCb } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -18,7 +18,7 @@ import {
 } from '../constants.js';
 import { ui, VersoError, handleError } from '../lib/ui.js';
 import { detectProjectName, isGitRepo } from '../lib/detect.js';
-import { getTemplatesDir } from '../lib/templates.js';
+import { getTemplatesDir, composePilot } from '../lib/templates.js';
 import { readYamlDocument, writeYamlDocument, applyWizardToConfig } from '../lib/config.js';
 import { generateChecksums, writeChecksums } from '../lib/checksums.js';
 import { generateBridges } from '../lib/bridges.js';
@@ -144,6 +144,17 @@ export async function initCommand(): Promise<void> {
 
     // Copy .verso/ directory
     await cp(join(templatesDir, VERSO_DIR), join(projectRoot, VERSO_DIR), { recursive: true });
+
+    // Compose the pilot prompt from core + role module and write as a single pilot.md
+    const pilotContent = await composePilot(role);
+    await writeFile(join(projectRoot, VERSO_DIR, 'agents', 'pilot.md'), pilotContent, 'utf-8');
+
+    // Remove the pilot/ modules directory — user only needs the composed pilot.md
+    const pilotModulesDir = join(projectRoot, VERSO_DIR, 'agents', 'pilot');
+    if (existsSync(pilotModulesDir)) {
+      await rm(pilotModulesDir, { recursive: true });
+    }
+
     spinner.succeed('  Created .verso/ directory');
 
     // --- Apply wizard answers to config.yaml ---

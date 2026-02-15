@@ -3,8 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import type { DoctorCheck, VersoConfig } from '../types/index.js';
-import { VERSO_DIR, VERSO_YAML, REQUIRED_FILES } from '../constants.js';
+import { VERSO_DIR, VERSO_YAML, REQUIRED_FILES, PILOT_MODULE_FOR_ROLE } from '../constants.js';
 import { ui, handleError } from '../lib/ui.js';
+import { getTemplatesDir } from '../lib/templates.js';
 import { isGhAvailable, isGhAuthenticated } from '../lib/github.js';
 import { readChecksums } from '../lib/checksums.js';
 
@@ -162,6 +163,28 @@ export async function doctorCommand(): Promise<void> {
       checks.push({ name: 'checksums', severity: 'pass', message: 'Checksums manifest is valid' });
     } else {
       checks.push({ name: 'checksums', severity: 'warn', message: 'Checksums manifest missing or invalid (.verso/.checksums.json)' });
+    }
+
+    // 9. Pilot template modules valid (core.md + at least one role variant)
+    try {
+      const templatesDir = getTemplatesDir();
+      const pilotDir = join(templatesDir, '.verso', 'agents', 'pilot');
+      const coreExists = existsSync(join(pilotDir, 'core.md'));
+      const roleModules = Object.values(PILOT_MODULE_FOR_ROLE);
+      const hasAtLeastOneRole = roleModules.some(mod => existsSync(join(pilotDir, mod)));
+
+      if (coreExists && hasAtLeastOneRole) {
+        checks.push({ name: 'pilot-templates', severity: 'pass', message: 'Pilot template modules valid (core + role variants)' });
+      } else {
+        if (!coreExists) {
+          checks.push({ name: 'pilot-templates', severity: 'fail', message: 'Missing pilot/core.md in CLI templates' });
+        }
+        if (!hasAtLeastOneRole) {
+          checks.push({ name: 'pilot-templates', severity: 'fail', message: 'No pilot role modules found in CLI templates' });
+        }
+      }
+    } catch {
+      checks.push({ name: 'pilot-templates', severity: 'warn', message: 'Could not verify pilot template modules' });
     }
 
     // Print results and summary

@@ -2,19 +2,17 @@ import { mkdir, readFile, writeFile, appendFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import type { AiTool, Role } from '../types/index.js';
-import { ROLE_PILOT_MAP } from '../constants.js';
 import { getTemplatesDir } from './templates.js';
 
 // ---------------------------------------------------------------------------
 // Core bridge content
 // ---------------------------------------------------------------------------
 
-function coreBridgeContent(role: Role): string {
-  const pilotFile = ROLE_PILOT_MAP[role];
+function coreBridgeContent(_role: Role): string {
   return [
     'This project uses the VERSO development framework.',
     '',
-    `Your active pilot variant is \`.verso/agents/${pilotFile}\` — read it and follow its instructions for all development tasks.`,
+    'Your active pilot is `.verso/agents/pilot.md` — read it and follow its instructions for all development tasks.',
     '',
     '### First-run check',
     '',
@@ -106,15 +104,10 @@ async function generateClaudeBridge(projectRoot: string, role: Role): Promise<st
     '### Your role: Pilot (AI Orchestrator)',
     '',
     'On session start:',
-    '1. Read `.verso.yaml` to determine the user\'s role',
-    '2. Read the corresponding pilot instructions from `.verso/agents/`:',
-    '   - solo-dev   -> `.verso/agents/pilot.md`',
-    '   - team-dev   -> `.verso/agents/pilot-team-dev.md`',
-    '   - tech-lead  -> `.verso/agents/pilot-tech-lead.md`',
-    '   - pm         -> `.verso/agents/pilot-pm.md`',
-    '3. Follow those instructions as your operating guide for the session',
-    '4. Read `.verso/config.yaml` for autonomy levels, WIP limits, and project settings',
-    '5. Read `.verso/state-machine.yaml` for valid states and transitions',
+    '1. Read `.verso/agents/pilot.md` — this is your operating guide for the session',
+    '2. Read `.verso.yaml` to confirm the user\'s role',
+    '3. Read `.verso/config.yaml` for autonomy levels, WIP limits, and project settings',
+    '4. Read `.verso/state-machine.yaml` for valid states and transitions',
     '',
     '### First-run check',
     '',

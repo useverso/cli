@@ -1,10 +1,12 @@
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { parse } from 'yaml';
 import { confirm } from '@inquirer/prompts';
-import { VERSO_DIR, TEMPLATE_FILES } from '../constants.js';
+import { VERSO_DIR, VERSO_YAML, TEMPLATE_FILES } from '../constants.js';
+import type { Role } from '../types/index.js';
 import { ui, VersoError, handleError } from '../lib/ui.js';
-import { getTemplatesDir } from '../lib/templates.js';
+import { getTemplatesDir, composePilot } from '../lib/templates.js';
 import { hashContent, generateChecksums, readChecksums, writeChecksums } from '../lib/checksums.js';
 import { readYamlDocument, writeYamlDocument } from '../lib/config.js';
 import { mergeYamlDocuments } from '../lib/yaml-merge.js';
@@ -25,6 +27,21 @@ export async function upgradeCommand(): Promise<void> {
     const manifest = await readChecksums(projectRoot);
     const originalHashes = manifest?.files ?? {};
 
+    // Read user's role from .verso.yaml for pilot composition
+    let userRole: Role = 'solo-dev';
+    const versoYamlPath = join(projectRoot, VERSO_YAML);
+    if (existsSync(versoYamlPath)) {
+      try {
+        const raw = await readFile(versoYamlPath, 'utf-8');
+        const parsed = parse(raw);
+        if (parsed?.role) {
+          userRole = parsed.role as Role;
+        }
+      } catch {
+        ui.warn('Could not read .verso.yaml — using solo-dev role for pilot composition');
+      }
+    }
+
     let updated = 0;
     let skipped = 0;
     let merged = 0;
@@ -33,12 +50,19 @@ export async function upgradeCommand(): Promise<void> {
       const localPath = join(projectRoot, relPath);
       const templatePath = join(templatesDir, relPath);
 
-      // Check template exists in bundle
-      if (!existsSync(templatePath)) {
-        continue;
+      // Special case: pilot.md is composed from modules, not copied directly
+      let templateContent: string;
+      if (relPath === '.verso/agents/pilot.md') {
+        templateContent = await composePilot(userRole);
+      } else {
+        // Check template exists in bundle
+        if (!existsSync(templatePath)) {
+          continue;
+        }
+
+        templateContent = await readFile(templatePath, 'utf-8');
       }
 
-      const templateContent = await readFile(templatePath, 'utf-8');
       const templateHash = hashContent(templateContent);
 
       // Check if local file exists

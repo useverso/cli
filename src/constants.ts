@@ -12,12 +12,12 @@ export const VERSO_YAML_EXAMPLE = '.verso.yaml.example';
 // Checksums manifest file
 export const CHECKSUMS_FILE = '.verso/.checksums.json';
 
-// Map roles to their pilot variant file
-export const ROLE_PILOT_MAP: Record<Role, string> = {
-  'solo-dev': 'pilot.md',
-  'team-dev': 'pilot-team-dev.md',
-  'tech-lead': 'pilot-tech-lead.md',
-  'pm': 'pilot-pm.md',
+// Map roles to their pilot module file
+export const PILOT_MODULE_FOR_ROLE: Record<Role, string> = {
+  'solo-dev': 'solo-dev.md',
+  'team-dev': 'team-dev.md',
+  'tech-lead': 'tech-lead.md',
+  'pm': 'pm.md',
 };
 
 // Default WIP limits per scale
@@ -78,15 +78,13 @@ export const REQUIRED_FILES = [
 ];
 
 // All template files (for checksums tracking)
+// Note: pilot.md is a composed file (core + role module), not copied directly from templates
 export const TEMPLATE_FILES = [
   '.verso/config.yaml',
   '.verso/roadmap.yaml',
   '.verso/state-machine.yaml',
   '.verso/releases.yaml',
   '.verso/agents/pilot.md',
-  '.verso/agents/pilot-team-dev.md',
-  '.verso/agents/pilot-tech-lead.md',
-  '.verso/agents/pilot-pm.md',
   '.verso/agents/builder.md',
   '.verso/agents/reviewer.md',
 ];
