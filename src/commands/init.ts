@@ -1,10 +1,11 @@
 import { existsSync } from 'node:fs';
 import { cp, readFile, writeFile, appendFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { parse } from 'yaml';
 import { execFile as execFileCb } from 'node:child_process';
 import { promisify } from 'node:util';
 import { select, input, confirm } from '@inquirer/prompts';
-import type { Scale, Role, AiTool, BoardProvider, WizardAnswers } from '../types/index.js';
+import type { Scale, Role, AiTool, BoardProvider, WizardAnswers, VersoConfig } from '../types/index.js';
 
 const execFileAsync = promisify(execFileCb);
 import {
@@ -22,7 +23,7 @@ import { getTemplatesDir, composePilot } from '../lib/templates.js';
 import { readYamlDocument, writeYamlDocument, applyWizardToConfig } from '../lib/config.js';
 import { generateChecksums, writeChecksums } from '../lib/checksums.js';
 import { generateBridges } from '../lib/bridges.js';
-import { isGhAvailable, isGhAuthenticated, hasProjectScope, copyVersoProject, getRepoSlug, createGitHubRepo, getGitHubOrgs } from '../lib/github.js';
+import { getIntegration } from '../lib/integrations/registry.js';
 
 export async function initCommand(): Promise<void> {
   try {
@@ -117,11 +118,11 @@ export async function initCommand(): Promise<void> {
       });
     }
 
-    // GitHub Project question (only if board is github)
+    // External board setup question (only if board is not local)
     let setupGitHub = false;
-    if (board === 'github') {
+    if (board !== 'local') {
       setupGitHub = await confirm({
-        message: 'Set up GitHub Project board?',
+        message: `Set up ${board === 'github' ? 'GitHub Project' : 'Linear'} board?`,
         default: true,
       });
     }
@@ -206,104 +207,29 @@ export async function initCommand(): Promise<void> {
     await updateGitignore(projectRoot);
     ui.success('Updated .gitignore');
 
-    // --- GitHub Project (optional) ---
-    if (answers.setupGitHub && gitRepo) {
-      // Ensure gh CLI is available and authenticated before proceeding
-      if (!(await isGhAvailable())) {
-        ui.warn('gh CLI not installed — skipping GitHub Project setup');
-      } else if (!(await isGhAuthenticated())) {
-        ui.warn('gh CLI not authenticated — run `gh auth login` first');
-      } else if (!(await hasProjectScope())) {
-        ui.warn("Missing 'project' scope — run `gh auth refresh -s project` and try again");
-      } else {
-        // Check if there's a GitHub remote — if not, offer to create one
-        const repoSlug = await getRepoSlug(projectRoot);
+    // --- Board setup ---
+    // Read back the parsed config for integration setup
+    const parsedConfig = parse(await readFile(configPath, 'utf-8')) as VersoConfig;
 
-        if (!repoSlug) {
-          const createRepo = await confirm({
-            message: 'No GitHub remote found. Create a GitHub repository?',
-            default: true,
-          });
+    // Always create local board.yaml (source of truth for all providers)
+    const localIntegration = getIntegration('local');
+    await localIntegration.setup(projectRoot, parsedConfig);
+    ui.success('Created .verso/board.yaml');
 
-          if (createRepo) {
-            // Let user choose the repository name
-            const repoName = await input({
-              message: 'Repository name:',
-              default: answers.projectName,
-            });
+    // If an external provider is configured and user opted in, run provider-specific setup
+    if (board !== 'local' && answers.setupGitHub) {
+      try {
+        const providerIntegration = getIntegration(board);
+        const providerSpinner = ui.spinner(`Setting up ${board} integration...`);
+        await providerIntegration.setup(projectRoot, parsedConfig);
+        providerSpinner.succeed(`  Configured ${board} integration`);
 
-            // Let user choose the organization (or personal account)
-            const orgs = await getGitHubOrgs();
-            let fullRepoName = repoName;
-
-            if (orgs.length > 0) {
-              const owner = await select<string>({
-                message: 'Create under:',
-                choices: [
-                  { value: '', name: 'Personal account' },
-                  ...orgs.map(org => ({ value: org, name: org })),
-                ],
-              });
-              if (owner) {
-                fullRepoName = `${owner}/${repoName}`;
-              }
-            }
-
-            // Make initial commit (gh repo create --source needs at least one commit)
-            const commitSpinner = ui.spinner('Creating initial commit...');
-            try {
-              await execFileAsync('git', ['add', '-A'], { cwd: projectRoot });
-              await execFileAsync('git', ['commit', '-m', 'chore: initialize project with VERSO'], { cwd: projectRoot });
-              commitSpinner.succeed('  Created initial commit');
-            } catch {
-              commitSpinner.warn('  Could not create initial commit');
-            }
-
-            // Create the repo
-            const repoSpinner = ui.spinner('Creating GitHub repository...');
-            const result = await createGitHubRepo(fullRepoName, projectRoot);
-            if (result.url) {
-              repoSpinner.succeed(`  Created repository: ${result.url}`);
-            } else {
-              repoSpinner.warn(`  Could not create repository: ${result.error}`);
-            }
-          }
-        }
-
-        // Try creating the project board (re-check slug in case repo was just created)
-        const currentSlug = await getRepoSlug(projectRoot);
-        if (currentSlug) {
-          const targetOwner = currentSlug.split('/')[0];
-
-          const ghSpinner = ui.spinner('Copying VERSO project board...');
-          const result = await copyVersoProject(
-            `${answers.projectName} — VERSO`,
-            targetOwner,
-          );
-
-          if (result.url) {
-            ghSpinner.succeed(`  Created project board: ${result.url}`);
-
-            // Write board details back to config.yaml
-            if (result.number) {
-              const updatedConfigDoc = await readYamlDocument(configPath);
-              updatedConfigDoc.setIn(['board', 'github', 'owner'], targetOwner);
-              updatedConfigDoc.setIn(['board', 'github', 'project_number'], result.number);
-              await writeYamlDocument(configPath, updatedConfigDoc);
-
-              // Update checksums since config changed
-              const updatedChecksums = await generateChecksums(projectRoot);
-              await writeChecksums(projectRoot, updatedChecksums);
-            }
-          } else {
-            ghSpinner.warn(`  Could not create project board: ${result.error}`);
-          }
-        } else {
-          ui.warn('No GitHub remote available — skipping project board setup');
-        }
+        // Re-generate checksums in case provider setup modified config
+        const updatedChecksums = await generateChecksums(projectRoot);
+        await writeChecksums(projectRoot, updatedChecksums);
+      } catch (err) {
+        ui.warn(`Could not set up ${board} integration: ${err instanceof Error ? err.message : err}`);
       }
-    } else if (answers.setupGitHub && !gitRepo) {
-      ui.warn('No git repository — skipping GitHub Project setup');
     }
 
     // --- Print success ---

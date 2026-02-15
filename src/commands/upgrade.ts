@@ -83,6 +83,13 @@ export async function upgradeCommand(): Promise<void> {
         continue;
       }
 
+      // Special case: board.yaml — never overwrite (contains user work items)
+      // Only create if missing (handled above at line 69-75)
+      if (relPath === '.verso/board.yaml') {
+        skipped++;
+        continue;
+      }
+
       // Special case: config.yaml — always merge
       if (relPath === '.verso/config.yaml') {
         const userDoc = await readYamlDocument(localPath);

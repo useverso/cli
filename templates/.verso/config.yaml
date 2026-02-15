@@ -77,15 +77,13 @@ quality:
 #   linear  - Linear issues and projects
 #   local   - Local YAML files (no external dependency)
 board:
-  provider: github
-  github:
-    owner: ""
-    project_number: 0
-  # linear:
+  provider: local              # local | github | linear
+  # github:                    # Uncomment if using GitHub
+  #   owner: ""
+  #   project_number: 0
+  # linear:                    # Uncomment if using Linear
   #   workspace: ""
   #   team: ""
-  # local:
-  #   path: .verso/board.yaml
 
 # ---------------------------------------------------------------------------
 # Tech Debt Policy

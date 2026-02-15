@@ -1,0 +1,22 @@
+# VERSO Local Board
+# This is the local source of truth for work items.
+# Sync with external providers (GitHub, Linear) via `verso sync`.
+
+items: []
+
+# Item schema:
+# - id: 1                           # Auto-incrementing integer
+#   title: "Add user authentication"
+#   type: feature                    # feature | enhancement | bug | hotfix | chore | refactor
+#   state: captured                  # captured | refined | queued | building | verifying | pr_ready | done | cancelled
+#   assignee: ""                     # Developer name or empty
+#   autonomy: 2                      # Autonomy level for this item (from config)
+#   branch: ""                       # Git branch name (set when building)
+#   pr: ""                           # PR number or URL (set when PR created)
+#   created_at: ""                   # ISO timestamp
+#   updated_at: ""                   # ISO timestamp
+#   labels: []                       # Additional labels
+#   external:                        # External provider references
+#     github_issue: 0                # GitHub issue number (if synced)
+#     github_project_item: ""        # GitHub project item ID (if synced)
+#     linear_id: ""                  # Linear issue ID (if synced)

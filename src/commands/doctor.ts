@@ -6,14 +6,15 @@ import type { DoctorCheck, VersoConfig } from '../types/index.js';
 import { VERSO_DIR, VERSO_YAML, REQUIRED_FILES, PILOT_MODULE_FOR_ROLE } from '../constants.js';
 import { ui, handleError } from '../lib/ui.js';
 import { getTemplatesDir } from '../lib/templates.js';
-import { isGhAvailable, isGhAuthenticated } from '../lib/github.js';
 import { readChecksums } from '../lib/checksums.js';
+import { getIntegration } from '../lib/integrations/registry.js';
 
 const YAML_FILES = [
   'config.yaml',
   'roadmap.yaml',
   'state-machine.yaml',
   'releases.yaml',
+  'board.yaml',
 ];
 
 export async function doctorCommand(): Promise<void> {
@@ -136,23 +137,27 @@ export async function doctorCommand(): Promise<void> {
       checks.push({ name: 'gitignore', severity: 'warn', message: '.verso.yaml is not in .gitignore' });
     }
 
-    // 7. gh CLI checks (only if board provider is github)
-    const boardProvider = parsedConfig?.board?.provider;
+    // 7. Board integration checks (only if config was parsed successfully)
+    if (parsedConfig) {
+      // Always validate the local board
+      const localIntegration = getIntegration('local');
+      const localBoardChecks = await localIntegration.validate(projectRoot, parsedConfig);
+      checks.push(...localBoardChecks);
 
-    if (boardProvider === 'github') {
-      const ghAvailable = await isGhAvailable();
-
-      if (ghAvailable) {
-        checks.push({ name: 'gh-available', severity: 'pass', message: 'gh CLI is installed' });
-
-        const ghAuthed = await isGhAuthenticated();
-        if (ghAuthed) {
-          checks.push({ name: 'gh-auth', severity: 'pass', message: 'gh CLI is authenticated' });
-        } else {
-          checks.push({ name: 'gh-auth', severity: 'fail', message: 'gh CLI is not authenticated (run `gh auth login`)' });
+      // Additionally validate external provider if configured
+      const boardProvider = parsedConfig.board?.provider;
+      if (boardProvider && boardProvider !== 'local') {
+        try {
+          const providerIntegration = getIntegration(boardProvider);
+          const providerChecks = await providerIntegration.validate(projectRoot, parsedConfig);
+          checks.push(...providerChecks);
+        } catch {
+          checks.push({
+            name: 'board-provider',
+            severity: 'fail',
+            message: `Unknown board provider: ${boardProvider}`,
+          });
         }
-      } else {
-        checks.push({ name: 'gh-available', severity: 'fail', message: 'gh CLI is not installed (https://cli.github.com)' });
       }
     }
 

@@ -8,6 +8,7 @@ import { initCommand } from './commands/init.js';
 import { doctorCommand } from './commands/doctor.js';
 import { statusCommand } from './commands/status.js';
 import { upgradeCommand } from './commands/upgrade.js';
+import { syncCommand } from './commands/sync.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,5 +44,10 @@ program
   .command('upgrade')
   .description('Upgrade VERSO templates to latest version')
   .action(upgradeCommand);
+
+program
+  .command('sync')
+  .description('Sync local board with external provider')
+  .action(syncCommand);
 
 program.parse();

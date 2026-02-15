@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 import chalk from 'chalk';
 import type { VersoConfig, VersoUserConfig } from '../types/index.js';
+import type { BoardItem } from '../lib/integrations/interface.js';
 import {
   VERSO_DIR,
   VERSO_YAML,
@@ -12,6 +13,7 @@ import {
   ROLE_LABELS,
 } from '../constants.js';
 import { ui, VersoError, handleError } from '../lib/ui.js';
+import { getIntegration } from '../lib/integrations/registry.js';
 
 interface RoadmapHorizon {
   milestone: string;
@@ -65,21 +67,53 @@ export async function statusCommand(): Promise<void> {
 
     // Board
     const boardProvider = config.board?.provider || 'not set';
+
+    // Get provider-specific status info via integration
     let boardDetail = '';
-    if (boardProvider === 'github' && config.board?.github) {
-      const { owner, project_number } = config.board.github;
-      if (owner && project_number) {
-        boardDetail = ` (${owner}/projects/${project_number})`;
+    if (boardProvider !== 'not set') {
+      try {
+        const integration = getIntegration(boardProvider);
+        const statusInfo = integration.getStatusInfo(config);
+        const details = Object.entries(statusInfo)
+          .filter(([key]) => key !== 'provider')
+          .map(([, value]) => value)
+          .filter(Boolean);
+        if (details.length > 0) {
+          boardDetail = ` (${details.join(', ')})`;
+        }
+      } catch {
+        // Unknown provider — just show the name
       }
-    } else if (boardProvider === 'linear' && config.board?.linear) {
-      const { workspace, team } = config.board.linear;
-      if (workspace) {
-        boardDetail = team ? ` (${workspace}/${team})` : ` (${workspace})`;
-      }
-    } else if (boardProvider === 'local' && config.board?.local?.path) {
-      boardDetail = ` (${config.board.local.path})`;
     }
     console.log(`  ${chalk.bold('Board:')}     ${boardProvider}${boardDetail}`);
+
+    // Board items summary from board.yaml
+    const boardPath = join(projectRoot, VERSO_DIR, 'board.yaml');
+    if (existsSync(boardPath)) {
+      try {
+        const boardRaw = await readFile(boardPath, 'utf-8');
+        const boardData = parse(boardRaw) as { items?: BoardItem[] };
+        const items = boardData?.items || [];
+
+        if (items.length > 0) {
+          // Group items by state
+          const byState = items.reduce<Record<string, number>>((acc, item) => {
+            const state = item.state || 'unknown';
+            acc[state] = (acc[state] || 0) + 1;
+            return acc;
+          }, {});
+
+          const stateSummary = Object.entries(byState)
+            .map(([state, count]) => `${state}: ${count}`)
+            .join(', ');
+          console.log(`  ${chalk.bold('Items:')}     ${items.length} total (${stateSummary})`);
+        } else {
+          console.log(`  ${chalk.bold('Items:')}     0 (board is empty)`);
+        }
+      } catch {
+        ui.warn('Could not read .verso/board.yaml');
+      }
+    }
 
     // WIP limits
     const wipBuilding = config.wip?.building ?? '\u2014';

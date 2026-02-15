@@ -50,28 +50,34 @@ Read the appropriate template, fill in the placeholders, and use the result as t
 
 ## Board Integration
 
-Read board configuration from `.verso/config.yaml`:
+Read board configuration from `.verso/config.yaml` to determine the provider.
 
-```yaml
-board:
-  provider: github
-  github:
-    owner: <owner>
-    project_number: <number>
-```
+### Creating a work item:
 
-When creating an issue:
-1. Create the issue: `gh issue create --title "..." --body "..." --label <work-type>`
-2. Add it to the project: `gh project item-add <project_number> --owner <owner> --url <issue-url>`
-3. Set the Status field to "Captured"
-4. Set the Work Type field (Feature, Bug, etc.)
-5. Set Priority if known
+**If provider is `local`:**
+- Add the item to `.verso/board.yaml` with the correct type, state, and fields
+- Use the next available ID (max existing ID + 1)
 
-When transitioning an issue:
-- Update the Status field in the project (not in the issue body)
+**If provider is `github`:**
+- Create a GitHub issue: `gh issue create --title "..." --body "..." --label <work-type>`
+- Add it to the project: `gh project item-add <project_number> --owner <owner> --url <issue-url>`
+- Set the Status field to "Captured"
+- Set the Work Type field (Feature, Bug, etc.)
+- Set Priority if known
+- Also update `.verso/board.yaml` with the external reference
+
+**If provider is `linear`:**
+- (Linear integration instructions will be added when available)
+
+### Updating work item state:
+
+**If provider is `local`:**
+- Update the `state` field in `.verso/board.yaml`
+
+**If provider is `github`:**
+- Update the Status field on the GitHub project item (not in the issue body)
 - Use `gh project item-edit` to update fields
-
-Always read `board.provider` first. If provider is not `github`, adapt the commands accordingly. If provider is `local`, manage state in local YAML files.
+- Also update `.verso/board.yaml`
 
 ## State Machine Enforcement
 
