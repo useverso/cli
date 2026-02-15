@@ -1,5 +1,7 @@
 # VERSO CLI
 
+> **⚠️ Work In Progress** — This CLI is under active development and has not been fully tested yet. Use at your own risk.
+
 CLI tool for initializing and managing [VERSO](https://github.com/useverso/verso) projects.
 
 > **Status:** Under development. Not yet published to NPM.
