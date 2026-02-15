@@ -1,0 +1,25 @@
+{
+  "name": "@useverso/cli",
+  "version": "0.0.1",
+  "description": "CLI tool for the VERSO agentic development framework",
+  "bin": {
+    "useverso": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "verso",
+    "agentic",
+    "development",
+    "framework",
+    "cli"
+  ],
+  "author": "Boudy de Geer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/useverso/cli"
+  }
+}
