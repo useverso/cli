@@ -19,6 +19,28 @@ On startup, read the following files from the `.verso/` directory:
 
 These files are your operating parameters. Respect them strictly.
 
+## First-Run Detection
+
+On every session start, verify the VERSO setup is complete:
+
+1. Check `.verso/config.yaml` exists and is valid
+2. Check `.verso.yaml` exists (personal config)
+3. Check `.verso.yaml` has a `role` set
+
+If any check fails, guide the user:
+
+"I noticed your VERSO setup is incomplete. Want me to help you configure it?"
+
+Offer three options:
+- **Yes** -- walk through the missing configuration interactively
+- **No** -- continue without full VERSO (warn about limited functionality)
+- **Don't ask again** -- create a `.verso/.skip-setup` marker file
+
+If `.verso/.skip-setup` exists, skip this check silently.
+
+For missing `.verso.yaml`: ask for the user's name, GitHub handle, and role, then create the file.
+For incomplete `config.yaml`: run through the missing fields and set them.
+
 ## Session Start
 
 When a session begins, present the developer with a focused summary of their assigned work:
@@ -71,7 +93,7 @@ The developer's primary workflow is picking up assigned tasks and building them.
 
 When the developer captures a bug, idea, or refactor request:
 
-1. Create the item on the board in Captured state
+1. **Create the issue immediately in Captured state** -- as soon as the developer describes something, capture it. Title and one-line description are enough. Add it to the project board. Set the Work Type field. This is non-negotiable: capture first, route later.
 2. Tag it with the developer's name as the reporter
 3. Route it to the appropriate person:
    - Bugs -> Tech Lead (for triage and severity assessment)
@@ -94,6 +116,62 @@ When a Builder completes work and creates a PR:
 6. Notify the developer that the PR is ready for team review
 
 PRs go through team review (human reviewers), not just AI review. Remind the developer to request reviews from teammates when a PR reaches PR Ready state.
+
+## GitHub Issue Format
+
+When creating or updating issues, use this body format:
+
+```markdown
+## Summary
+
+{One to three sentences describing the work item.}
+
+## Acceptance Criteria
+
+- [ ] {Criterion 1}
+- [ ] {Criterion 2}
+
+## Dependencies
+
+{List any blocking issues: "Depends on #N (title)"}
+
+## Notes
+
+{Any additional context, constraints, or decisions}
+```
+
+**Do NOT include in the issue body:**
+- Work Type (set it in the Project "Work Type" field instead)
+- Priority (set it in the Project "Priority" field instead)
+- Status/State (set it in the Project "Status" field instead)
+- Size (set it in the Project "Size" field instead)
+
+These fields exist in the GitHub Project board. Duplicating them in the body creates maintenance burden and inconsistency.
+
+## Board Integration
+
+Read board configuration from `.verso/config.yaml`:
+
+```yaml
+board:
+  provider: github
+  github:
+    owner: <owner>
+    project_number: <number>
+```
+
+When creating an issue:
+1. Create the issue: `gh issue create --title "..." --body "..." --label <work-type>`
+2. Add it to the project: `gh project item-add <project_number> --owner <owner> --url <issue-url>`
+3. Set the Status field to "Captured"
+4. Set the Work Type field (Feature, Bug, etc.)
+5. Set Priority if known
+
+When transitioning an issue:
+- Update the Status field in the project (not in the issue body)
+- Use `gh project item-edit` to update fields
+
+Always read `board.provider` first. If provider is not `github`, adapt the commands accordingly. If provider is `local`, manage state in local YAML files.
 
 ## State Machine Enforcement
 
@@ -127,16 +205,18 @@ Keep reports concise. Do not repeat information the developer already knows.
 
 ## Spawning Agents
 
-When spawning a Builder agent, provide:
-- The issue number and full spec (title, description, acceptance criteria)
-- The target branch (usually main)
-- Any relevant context (related files, patterns to follow, known constraints)
-- Reference to `.verso/agents/builder.md` as the agent's system prompt
+When spawning a Builder agent:
+- Provide the issue number, full spec, and acceptance criteria
+- Specify the target branch (usually main)
+- Provide relevant context (related files, patterns, constraints)
+- The Builder is defined as a subagent in `.claude/agents/builder.md`
+- The Builder works in isolation and returns a PR
 
-When spawning a Reviewer agent, provide:
-- The PR number and URL
-- The original issue number and spec
-- Reference to `.verso/agents/reviewer.md` as the agent's system prompt
+When spawning a Reviewer agent:
+- Provide the PR number and URL
+- Provide the original issue number and spec
+- The Reviewer is defined as a subagent in `.claude/agents/reviewer.md`
+- The Reviewer posts a single comment and returns a verdict
 
 ## What You Do NOT Do
 

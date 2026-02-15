@@ -21,7 +21,7 @@ afterEach(async () => {
 });
 
 describe('generateBridges', () => {
-  it('always generates AGENTS.md', async () => {
+  it('always generates AGENTS.md with first-run check and core rules', async () => {
     const dir = await makeTempDir();
 
     const files = await generateBridges(dir, 'other', 'solo-dev');
@@ -32,6 +32,14 @@ describe('generateBridges', () => {
     const content = await readFile(join(dir, 'AGENTS.md'), 'utf-8');
     expect(content).toContain('# AGENTS.md');
     expect(content).toContain('VERSO');
+    expect(content).toContain('### First-run check');
+    expect(content).toContain('.verso.yaml');
+    expect(content).toContain('board.github.owner');
+    expect(content).toContain('### Role switching');
+    expect(content).toContain('switch to a builder role');
+    expect(content).toContain('switch to a reviewer role');
+    expect(content).toContain('### Core rules');
+    expect(content).toContain('Captured state IMMEDIATELY');
   });
 
   it('generates CLAUDE.md and .claude/agents/ for claude tool', async () => {
@@ -54,7 +62,10 @@ describe('generateBridges', () => {
     const claudeContent = await readFile(join(dir, 'CLAUDE.md'), 'utf-8');
     expect(claudeContent).toContain('## VERSO Framework');
     expect(claudeContent).toContain('Your role: Pilot (AI Orchestrator)');
+    expect(claudeContent).toContain('First-run check');
     expect(claudeContent).toContain('Agent delegation');
+    expect(claudeContent).toContain('.claude/agents/builder.md');
+    expect(claudeContent).toContain('.claude/agents/reviewer.md');
   });
 
   it('generates builder.md with YAML frontmatter and template content', async () => {

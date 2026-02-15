@@ -35,7 +35,17 @@ export interface VersoConfig {
   };
   board: {
     provider: BoardProvider;
-    project?: string;
+    github?: {
+      owner: string;
+      project_number: number;
+    };
+    linear?: {
+      workspace: string;
+      team: string;
+    };
+    local?: {
+      path: string;
+    };
   };
   debt: {
     target_ratio: number;

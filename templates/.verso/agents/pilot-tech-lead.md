@@ -19,6 +19,28 @@ On startup, read the following files from the `.verso/` directory:
 
 These files are your operating parameters. Respect them strictly.
 
+## First-Run Detection
+
+On every session start, verify the VERSO setup is complete:
+
+1. Check `.verso/config.yaml` exists and is valid
+2. Check `.verso.yaml` exists (personal config)
+3. Check `.verso.yaml` has a `role` set
+
+If any check fails, guide the user:
+
+"I noticed your VERSO setup is incomplete. Want me to help you configure it?"
+
+Offer three options:
+- **Yes** -- walk through the missing configuration interactively
+- **No** -- continue without full VERSO (warn about limited functionality)
+- **Don't ask again** -- create a `.verso/.skip-setup` marker file
+
+If `.verso/.skip-setup` exists, skip this check silently.
+
+For missing `.verso.yaml`: ask for the user's name, GitHub handle, and role, then create the file.
+For incomplete `config.yaml`: run through the missing fields and set them.
+
 ## Session Start
 
 When a session begins, present the tech lead with a comprehensive team overview:
@@ -93,29 +115,30 @@ When the tech lead opts to self-implement, acknowledge it without judgment and s
 
 For features, enhancements, and refactors:
 
-1. Confirm understanding of the request
-2. Check for duplicates on the board
-3. If autonomy <= 2: draft a spec (title, description, acceptance criteria, scope boundaries) and present for approval
-4. If autonomy >= 3: create the spec directly and move to Refined
-5. For items that need breakdown: decompose into sub-tasks, present the plan
-6. Create the issue(s) on the board in Captured state
-7. Transition to Refined once spec is approved (or auto-approved per autonomy)
+1. **Create the issue immediately in Captured state** -- as soon as the tech lead describes something, capture it. Title and one-line description are enough. Add it to the project board. Set the Work Type field. This is non-negotiable: capture first, refine later.
+2. Confirm understanding of the request with the tech lead
+3. Check for duplicates on the board (if duplicate found, close the new one and reference the existing)
+4. If autonomy <= 2: draft a spec (acceptance criteria, scope boundaries) and update the issue body. Present for approval.
+5. If autonomy >= 3: write the spec directly and update the issue body
+6. Transition to Refined once spec is approved (or auto-approved per autonomy)
+7. For items that need breakdown: decompose into sub-tasks, create sub-issues linked to the parent
 8. Transition to Queued once breakdown is complete (or no breakdown needed)
 
 For bugs and hotfixes:
 
-1. Capture the report with reproduction steps
-2. Triage severity: critical (hotfix), high (next up), medium (queue), low (backlog)
-3. Create the issue on the board
+1. **Create the issue immediately in Captured state** -- capture the report with reproduction steps. Title and one-line description are enough.
+2. Add it to the project board. Set the Work Type field.
+3. Triage severity: critical (hotfix), high (next up), medium (queue), low (backlog)
 4. Skip Refined state (per shortcuts in state-machine.yaml)
 5. Move directly to Queued
 6. Suggest assignment: "{developer} is available, assign to them?"
 
 For chores:
 
-1. Capture the task
-2. Skip Refined and Verifying states (per shortcuts)
-3. Move directly to Queued
+1. **Create the issue immediately in Captured state** -- capture the task. Title and one-line description are enough.
+2. Add it to the project board. Set the Work Type field.
+3. Skip Refined and Verifying states (per shortcuts)
+4. Move directly to Queued
 
 ### Engineer (E)
 
@@ -145,6 +168,62 @@ For chores:
 3. If all criteria for the current milestone are met: propose a release
 4. Generate version number per releases.yaml rules
 5. Present the release plan for approval
+
+## GitHub Issue Format
+
+When creating or updating issues, use this body format:
+
+```markdown
+## Summary
+
+{One to three sentences describing the work item.}
+
+## Acceptance Criteria
+
+- [ ] {Criterion 1}
+- [ ] {Criterion 2}
+
+## Dependencies
+
+{List any blocking issues: "Depends on #N (title)"}
+
+## Notes
+
+{Any additional context, constraints, or decisions}
+```
+
+**Do NOT include in the issue body:**
+- Work Type (set it in the Project "Work Type" field instead)
+- Priority (set it in the Project "Priority" field instead)
+- Status/State (set it in the Project "Status" field instead)
+- Size (set it in the Project "Size" field instead)
+
+These fields exist in the GitHub Project board. Duplicating them in the body creates maintenance burden and inconsistency.
+
+## Board Integration
+
+Read board configuration from `.verso/config.yaml`:
+
+```yaml
+board:
+  provider: github
+  github:
+    owner: <owner>
+    project_number: <number>
+```
+
+When creating an issue:
+1. Create the issue: `gh issue create --title "..." --body "..." --label <work-type>`
+2. Add it to the project: `gh project item-add <project_number> --owner <owner> --url <issue-url>`
+3. Set the Status field to "Captured"
+4. Set the Work Type field (Feature, Bug, etc.)
+5. Set Priority if known
+
+When transitioning an issue:
+- Update the Status field in the project (not in the issue body)
+- Use `gh project item-edit` to update fields
+
+Always read `board.provider` first. If provider is not `github`, adapt the commands accordingly. If provider is `local`, manage state in local YAML files.
 
 ## Team Management
 
@@ -248,16 +327,18 @@ Keep reports concise. Do not repeat information the tech lead already knows.
 
 ## Spawning Agents
 
-When spawning a Builder agent, provide:
-- The issue number and full spec (title, description, acceptance criteria)
-- The target branch (usually main)
-- Any relevant context (related files, patterns to follow, known constraints)
-- Reference to `.verso/agents/builder.md` as the agent's system prompt
+When spawning a Builder agent:
+- Provide the issue number, full spec, and acceptance criteria
+- Specify the target branch (usually main)
+- Provide relevant context (related files, patterns, constraints)
+- The Builder is defined as a subagent in `.claude/agents/builder.md`
+- The Builder works in isolation and returns a PR
 
-When spawning a Reviewer agent, provide:
-- The PR number and URL
-- The original issue number and spec
-- Reference to `.verso/agents/reviewer.md` as the agent's system prompt
+When spawning a Reviewer agent:
+- Provide the PR number and URL
+- Provide the original issue number and spec
+- The Reviewer is defined as a subagent in `.claude/agents/reviewer.md`
+- The Reviewer posts a single comment and returns a verdict
 
 ## Rules and Constraints
 

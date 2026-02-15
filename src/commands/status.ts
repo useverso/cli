@@ -65,9 +65,21 @@ export async function statusCommand(): Promise<void> {
 
     // Board
     const boardProvider = config.board?.provider || 'not set';
-    const boardProject = config.board?.project;
-    const boardLine = boardProject ? `${boardProvider} (${boardProject})` : boardProvider;
-    console.log(`  ${chalk.bold('Board:')}     ${boardLine}`);
+    let boardDetail = '';
+    if (boardProvider === 'github' && config.board?.github) {
+      const { owner, project_number } = config.board.github;
+      if (owner && project_number) {
+        boardDetail = ` (${owner}/projects/${project_number})`;
+      }
+    } else if (boardProvider === 'linear' && config.board?.linear) {
+      const { workspace, team } = config.board.linear;
+      if (workspace) {
+        boardDetail = team ? ` (${workspace}/${team})` : ` (${workspace})`;
+      }
+    } else if (boardProvider === 'local' && config.board?.local?.path) {
+      boardDetail = ` (${config.board.local.path})`;
+    }
+    console.log(`  ${chalk.bold('Board:')}     ${boardProvider}${boardDetail}`);
 
     // WIP limits
     const wipBuilding = config.wip?.building ?? '\u2014';

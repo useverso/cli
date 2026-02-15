@@ -55,7 +55,14 @@ wip:
 #   local   - Local YAML files (no external dependency)
 board:
   provider: github
-  # project: "org/projects/1"  # Uncomment and set your project board URL
+  github:
+    owner: ""
+    project_number: 0
+  # linear:
+  #   workspace: ""
+  #   team: ""
+  # local:
+  #   path: .verso/board.yaml
 
 # ---------------------------------------------------------------------------
 # Tech Debt Policy

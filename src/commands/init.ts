@@ -272,6 +272,18 @@ export async function initCommand(): Promise<void> {
 
           if (result.url) {
             ghSpinner.succeed(`  Created project board: ${result.url}`);
+
+            // Write board details back to config.yaml
+            if (result.number) {
+              const updatedConfigDoc = await readYamlDocument(configPath);
+              updatedConfigDoc.setIn(['board', 'github', 'owner'], targetOwner);
+              updatedConfigDoc.setIn(['board', 'github', 'project_number'], result.number);
+              await writeYamlDocument(configPath, updatedConfigDoc);
+
+              // Update checksums since config changed
+              const updatedChecksums = await generateChecksums(projectRoot);
+              await writeChecksums(projectRoot, updatedChecksums);
+            }
           } else {
             ghSpinner.warn(`  Could not create project board: ${result.error}`);
           }

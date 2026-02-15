@@ -33,6 +33,9 @@ export async function writeYamlDocument(filePath: string, doc: Document): Promis
  *     pr_ready: 5
  *   board:
  *     provider: github
+ *     github:
+ *       owner: ""
+ *       project_number: 0
  *   debt: ...
  *   costs: ...
  */
