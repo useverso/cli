@@ -1,0 +1,21 @@
+# .verso.yaml — Per-user VERSO configuration
+# Copy this file to .verso.yaml and fill in your values.
+# IMPORTANT: .verso.yaml is gitignored — never commit it.
+
+# Role determines which Pilot variant guides your session
+# Options: solo-dev | team-dev | tech-lead | pm
+role: solo-dev
+
+# Your identity (used for attribution in issues, PRs, and comments)
+name: ""
+github: ""
+# slack: ""
+# email: ""
+
+# Credentials: use environment variables, never this file
+# export GITHUB_TOKEN=ghp_...
+# export LINEAR_API_KEY=lin_...
+
+# Personal preferences (optional)
+# preferred_autonomy_override: 2
+# notifications: slack

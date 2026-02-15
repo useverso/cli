@@ -1,0 +1,50 @@
+# VERSO Release Configuration
+# https://useverso.dev
+#
+# Releases are milestone-driven, not date-driven.
+# When a milestone completes, the Pilot proposes a release.
+# The developer approves and the system handles the rest.
+
+# ---------------------------------------------------------------------------
+# Versioning Strategy
+# ---------------------------------------------------------------------------
+# semver - Semantic Versioning (MAJOR.MINOR.PATCH)
+# calver - Calendar Versioning (YYYY.MM.DD or similar)
+versioning: semver
+
+# ---------------------------------------------------------------------------
+# Version Bump Rules
+# ---------------------------------------------------------------------------
+# Maps events to version increments.
+# The Pilot applies these rules when proposing a release.
+rules:
+  milestone_complete: minor    # MVP done -> v0.1.0, Polish done -> v0.2.0
+  hotfix_merged: patch         # Hotfix PR merged -> v0.1.1
+  breaking_change: major       # Breaking API change -> v1.0.0
+
+# ---------------------------------------------------------------------------
+# Changelog Generation
+# ---------------------------------------------------------------------------
+# The changelog is generated automatically from merged PR titles and bodies.
+# No manual changelog maintenance required.
+changelog:
+  source: merged_prs               # Generate from PR titles and bodies
+  format: keep-a-changelog         # https://keepachangelog.com
+  categories:                      # Map PR labels/types to changelog sections
+    - name: Added
+      types: [feature]
+    - name: Changed
+      types: [enhancement, refactor]
+    - name: Fixed
+      types: [bug, hotfix]
+    - name: Removed
+      types: []
+
+# ---------------------------------------------------------------------------
+# Release Automation
+# ---------------------------------------------------------------------------
+# What happens when a release is triggered.
+release:
+  create_github_release: true      # Create a GitHub Release with notes
+  generate_changelog: true         # Auto-generate CHANGELOG.md entries
+  tag_format: "v{version}"         # Git tag format, e.g. v0.1.0

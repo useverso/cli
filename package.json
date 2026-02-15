@@ -2,12 +2,23 @@
   "name": "@useverso/cli",
   "version": "0.0.1",
   "description": "CLI tool for the VERSO agentic development framework",
+  "type": "module",
   "bin": {
-    "useverso": "./dist/index.js"
+    "verso": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "verso",
@@ -21,5 +32,18 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/useverso/cli"
+  },
+  "dependencies": {
+    "commander": "^13.0.0",
+    "@inquirer/prompts": "^7.0.0",
+    "yaml": "^2.7.0",
+    "chalk": "^5.4.0",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "vitest": "^3.0.0",
+    "@types/node": "^22.0.0"
   }
 }

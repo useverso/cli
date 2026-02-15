@@ -1,0 +1,116 @@
+# VERSO State Machine
+# https://useverso.dev
+#
+# This file defines the formal finite state machine that governs all work items.
+# The Pilot enforces these rules. No agent can skip states.
+# Only pr_merged triggers Done. No agent ever closes issues manually.
+#
+# Each state belongs to a VERSO phase: Validate, Engineer, Review, or Ship.
+# Transitions have a trigger (what causes it), a guard (what must be true),
+# and an actor (who is authorized to trigger it).
+
+# ---------------------------------------------------------------------------
+# States
+# ---------------------------------------------------------------------------
+states:
+  captured:
+    phase: validate
+    description: "Work item identified and initially triaged"
+    transitions:
+      - to: refined
+        trigger: spec_written
+        guard: "autonomy <= 2 requires dev_approved"
+        actor: pilot
+      - to: queued
+        trigger: simple_work
+        guard: "type in [bug, hotfix, chore]"
+        actor: pilot
+      - to: cancelled
+        trigger: rejected_or_duplicate
+        actor: pilot
+
+  refined:
+    phase: validate
+    description: "Spec complete with acceptance criteria, breakdown done if needed"
+    transitions:
+      - to: queued
+        trigger: breakdown_complete
+        guard: "autonomy <= 2 requires dev_approved"
+        actor: pilot
+
+  queued:
+    phase: engineer
+    description: "Ready to build, waiting for builder capacity"
+    transitions:
+      - to: building
+        trigger: builder_spawned
+        guard: "building_count < wip.building"
+        actor: pilot
+
+  building:
+    phase: engineer
+    description: "Builder agent actively implementing in an isolated worktree"
+    transitions:
+      - to: verifying
+        trigger: pr_created
+        actor: builder
+      - to: queued
+        trigger: build_failed
+        guard: "retries < max_retries"
+        actor: pilot
+
+  verifying:
+    phase: review
+    description: "PR exists, reviewer agent analyzing against spec"
+    transitions:
+      - to: pr_ready
+        trigger: reviewer_commented
+        actor: reviewer
+      - to: building
+        trigger: issues_found
+        actor: pilot
+
+  pr_ready:
+    phase: review
+    description: "Review complete, awaiting human decision to merge"
+    transitions:
+      - to: done
+        trigger: pr_merged
+        actor: developer
+      - to: building
+        trigger: dev_requested_changes
+        actor: pilot
+
+  done:
+    phase: ship
+    description: "PR merged, issue closed automatically"
+    terminal: true
+
+  cancelled:
+    phase: validate
+    description: "Rejected, duplicate, or no longer relevant"
+    terminal: true
+
+# ---------------------------------------------------------------------------
+# Global Rules
+# ---------------------------------------------------------------------------
+
+# Maximum build retries before a work item requires human intervention.
+# After max_retries, the item stays in Queued and the Pilot alerts the developer.
+max_retries: 2
+
+# ---------------------------------------------------------------------------
+# Work Type Shortcuts
+# ---------------------------------------------------------------------------
+# Which states can be skipped for each work type.
+# The Pilot uses these to fast-track appropriate work.
+#
+# An empty list means the full cycle applies.
+# States listed here are skipped -- the item jumps past them.
+shortcuts:
+  feature: []                        # Full cycle: Captured -> Refined -> Queued -> Building -> Verifying -> PR Ready -> Done
+  enhancement: []                    # Full cycle
+  bug: [refined]                     # Skip refinement for straightforward bugs
+  hotfix: [refined]                  # Skip refinement -- urgency overrides process
+  chore: [refined, verifying]        # Skip refinement and review -- low risk
+  refactor: []                       # Full cycle -- V phase confirms scope is safe

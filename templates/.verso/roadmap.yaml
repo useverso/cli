@@ -1,0 +1,56 @@
+# VERSO Roadmap
+# https://useverso.dev
+#
+# Goal-based milestones, not time-based sprints.
+# A milestone completes when ALL its criteria are met -- not when a date arrives.
+#
+# Instructions:
+#   1. Set your vision (one sentence, your product's north star)
+#   2. Define your first milestone under "milestones"
+#   3. Set the "now" horizon to point at that milestone
+#   4. Add criteria -- these become your definition of done
+#   5. As you complete milestones, move them through the horizons
+
+vision: ""  # Your product's north star in one sentence
+
+# ---------------------------------------------------------------------------
+# Three-Horizon Roadmap
+# ---------------------------------------------------------------------------
+# NOW   - Current milestone, actively building
+# NEXT  - Planned, requirements known but not yet refined
+# LATER - Future ideas, captured but not committed to
+horizons:
+  now:
+    milestone: mvp
+    focus: ""  # What you are building right now (one sentence)
+  next:
+    milestone: polish
+    focus: ""  # What comes after the current milestone
+  later: []   # Future milestone names, e.g. [scaling, marketplace]
+
+# ---------------------------------------------------------------------------
+# Milestones
+# ---------------------------------------------------------------------------
+# Each milestone is a statement that becomes true when it is complete.
+# The Pilot uses these to prioritize work and detect scope creep.
+milestones:
+  mvp:
+    name: "MVP"
+    goal: ""  # e.g. "A user can complete the core workflow end-to-end"
+    criteria:
+      - id: core-feature
+        description: ""  # A specific, testable capability
+        issues: []       # GitHub issue numbers that satisfy this criterion
+    exit_criteria:
+      - "Zero critical bugs"
+      - "Core user flows tested"
+      - "TypeScript compiles clean"
+
+  polish:
+    name: "Polish"
+    goal: ""  # e.g. "The product feels professional and handles edge cases"
+    depends_on: [mvp]
+    criteria: []    # Define when you get here
+    exit_criteria:
+      - "Zero known bugs above low severity"
+      - "Performance within acceptable thresholds"

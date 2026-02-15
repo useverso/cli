@@ -1,0 +1,83 @@
+# VERSO Framework Configuration
+# https://useverso.dev
+#
+# This file controls how VERSO behaves in your project.
+# Adjust these settings to match your team size, risk tolerance, and workflow.
+
+# ---------------------------------------------------------------------------
+# Scale
+# ---------------------------------------------------------------------------
+# Determines documentation requirements, ceremony level, and sensible defaults.
+# Options:
+#   solo        - One developer, minimal ceremony
+#   small-team  - 2-5 developers, lightweight coordination
+#   startup     - 5-15 developers, structured but lean
+#   enterprise  - 15+ developers, full governance
+scale: solo
+
+# ---------------------------------------------------------------------------
+# Autonomy Dial
+# ---------------------------------------------------------------------------
+# Controls how much trust you place in AI agents for each work type.
+# Higher levels mean less human intervention.
+#
+# Levels:
+#   1 - Full control: approve spec, plan, every commit, and PR
+#   2 - Standard:     approve spec and PR (recommended starting point)
+#   3 - Light touch:  approve only PR
+#   4 - Full auto:    agent handles everything, you just merge
+autonomy:
+  feature: 2
+  enhancement: 2
+  bug: 3
+  hotfix: 3
+  refactor: 2
+  chore: 4
+
+# ---------------------------------------------------------------------------
+# Work-in-Progress Limits
+# ---------------------------------------------------------------------------
+# Prevents the system from producing more output than you can review.
+# An agent that opens 20 PRs while you sleep is creating a review backlog,
+# not being productive.
+wip:
+  building: 2          # Max concurrent items being built by agents
+  pr_ready: 5          # Max PRs sitting in the review queue
+
+# ---------------------------------------------------------------------------
+# Board Provider
+# ---------------------------------------------------------------------------
+# Where work items live. The Pilot reads and updates this board.
+#
+# Providers:
+#   github  - GitHub Issues + GitHub Projects
+#   linear  - Linear issues and projects
+#   local   - Local YAML files (no external dependency)
+board:
+  provider: github
+  # project: "org/projects/1"  # Uncomment and set your project board URL
+
+# ---------------------------------------------------------------------------
+# Tech Debt Policy
+# ---------------------------------------------------------------------------
+# VERSO tracks the ratio of debt-reduction work to feature work.
+# When the ratio drops below target, the Pilot will suggest debt items.
+debt:
+  target_ratio: 0.2           # 20% of completed work should address debt
+  audit_trigger: milestone    # When to run a debt audit: milestone | weekly | manual
+
+# ---------------------------------------------------------------------------
+# Cost Tracking
+# ---------------------------------------------------------------------------
+# Every work item tracks token usage and developer time so you can calculate
+# real ROI compared to traditional development.
+costs:
+  enabled: true
+  token_pricing:
+    input_per_1m: 15.00       # Dollars per 1M input tokens
+    output_per_1m: 75.00      # Dollars per 1M output tokens
+  dev_hourly_rate: 75         # Your hourly rate for ROI calculations
+  traditional_estimates:
+    simple_item_hours: 4      # Baseline hours for a simple task (traditional)
+    medium_item_hours: 12     # Baseline hours for a medium task (traditional)
+    complex_item_hours: 32    # Baseline hours for a complex task (traditional)
