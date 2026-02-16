@@ -10,7 +10,7 @@ CLI tool for initializing and managing [VERSO](https://github.com/useverso/verso
 
 ```bash
 # Initialize VERSO in your project
-npx useverso init
+npx @useverso/cli init
 ```
 
 The `init` command will:
@@ -35,7 +35,6 @@ npm run build
 ## Learn More
 
 - [The VERSO Paper](https://github.com/useverso/verso/blob/main/paper/VERSO.md) — full framework specification
-- [VERSO Template](https://github.com/useverso/template) — the `.verso/` starter files
 
 ## License
 

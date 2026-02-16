@@ -118,7 +118,7 @@ states:
 
 # Maximum build retries before a work item requires human intervention.
 # After max_retries, the item stays in Queued and the Pilot alerts the developer.
-max_retries: 2
+max_retries: 3
 
 # ---------------------------------------------------------------------------
 # Work Type Shortcuts
