@@ -48,7 +48,6 @@ export const AUTONOMY_LABELS: Record<number, string> = {
 // These are the defaults written to config.yaml during init
 export const DEFAULT_AUTONOMY_PER_WORK_TYPE: Record<WorkType, number> = {
   feature: 2,
-  enhancement: 2,
   bug: 3,
   hotfix: 3,
   refactor: 2,

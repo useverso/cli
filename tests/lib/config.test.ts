@@ -122,11 +122,10 @@ describe('applyWizardToConfig', () => {
   });
 
   it('sets autonomy for all work types', () => {
-    const doc = parseDocument('scale: solo\nautonomy:\n  feature: 1\n  enhancement: 1\n  bug: 1\n  hotfix: 1\n  refactor: 1\n  chore: 1\nwip:\n  building: 1\n  pr_ready: 1\nboard:\n  provider: local\n');
+    const doc = parseDocument('scale: solo\nautonomy:\n  feature: 1\n  bug: 1\n  hotfix: 1\n  refactor: 1\n  chore: 1\nwip:\n  building: 1\n  pr_ready: 1\nboard:\n  provider: local\n');
     applyWizardToConfig(doc, makeAnswers({ autonomy: 3 }));
 
     expect(doc.getIn(['autonomy', 'feature'])).toBe(3);
-    expect(doc.getIn(['autonomy', 'enhancement'])).toBe(3);
     expect(doc.getIn(['autonomy', 'bug'])).toBe(3);
     expect(doc.getIn(['autonomy', 'hotfix'])).toBe(3);
     expect(doc.getIn(['autonomy', 'refactor'])).toBe(3);
@@ -142,7 +141,6 @@ describe('applyWizardToConfig', () => {
       'scale: solo # team size',
       'autonomy:',
       '  feature: 2',
-      '  enhancement: 2',
       '  bug: 3',
       '  hotfix: 3',
       '  refactor: 2',

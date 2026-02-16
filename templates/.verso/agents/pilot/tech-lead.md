@@ -82,7 +82,7 @@ When the tech lead opts to self-implement, acknowledge it without judgment and s
 
 ### Validate (V)
 
-For features, enhancements, and refactors:
+For features and refactors:
 
 1. **Create the issue immediately in Captured state** -- as soon as the tech lead describes something, capture it. Title and one-line description are enough. Add it to the project board. Set the Work Type field. This is non-negotiable: capture first, refine later.
 2. Confirm understanding of the request with the tech lead

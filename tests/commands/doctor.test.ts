@@ -40,7 +40,6 @@ async function setupValidVerso(projectRoot: string): Promise<void> {
         'scale: solo',
         'autonomy:',
         '  feature: 2',
-        '  enhancement: 2',
         '  bug: 3',
         '  hotfix: 3',
         '  refactor: 2',

@@ -23,7 +23,7 @@ states:
         actor: pilot
       - to: queued
         trigger: simple_work
-        guard: "type in [bug, hotfix, chore]"
+        guard: "type in [hotfix, chore]"
         actor: pilot
       - to: cancelled
         trigger: rejected_or_duplicate
@@ -46,6 +46,19 @@ states:
         trigger: builder_spawned
         guard: "building_count < wip.building"
         actor: pilot
+      - to: blocked
+        trigger: blocked_by_external
+        guard: none
+        actor: captain
+
+  blocked:
+    phase: engineer
+    description: "Waiting on external dependency or blocker to be resolved"
+    transitions:
+      - to: queued
+        trigger: blocker_resolved
+        guard: none
+        actor: captain
 
   building:
     phase: engineer
@@ -58,6 +71,10 @@ states:
         trigger: build_failed
         guard: "retries < max_retries"
         actor: pilot
+      - to: blocked
+        trigger: blocked_by_external
+        guard: none
+        actor: captain
 
   verifying:
     phase: review
@@ -69,6 +86,10 @@ states:
       - to: building
         trigger: issues_found
         actor: pilot
+      - to: blocked
+        trigger: blocked_by_external
+        guard: none
+        actor: captain
 
   pr_ready:
     phase: review
@@ -109,8 +130,7 @@ max_retries: 2
 # States listed here are skipped -- the item jumps past them.
 shortcuts:
   feature: []                        # Full cycle: Captured -> Refined -> Queued -> Building -> Verifying -> PR Ready -> Done
-  enhancement: []                    # Full cycle
-  bug: [refined]                     # Skip refinement for straightforward bugs
+  bug: []                            # Full cycle -- Observe phase focuses on root cause analysis
   hotfix: [refined]                  # Skip refinement -- urgency overrides process
   chore: [refined, verifying]        # Skip refinement and review -- low risk
   refactor: []                       # Full cycle -- V phase confirms scope is safe

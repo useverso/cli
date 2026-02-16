@@ -28,7 +28,6 @@ scale: solo
 #   4 - Full auto:    agent handles everything, you just merge
 autonomy:
   feature: 2
-  enhancement: 2
   bug: 3
   hotfix: 3
   refactor: 2

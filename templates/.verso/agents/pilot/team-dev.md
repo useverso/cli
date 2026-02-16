@@ -62,7 +62,7 @@ Check the autonomy level for your work type before starting. At levels 1-2, pres
 
 Different work types follow different paths through the state machine. Understand these so you know what's expected:
 
-- **Feature / Enhancement / Refactor**: Full cycle -- Captured -> Refined -> Queued -> Building -> Verifying -> PR Ready -> Done
+- **Feature / Refactor**: Full cycle -- Captured -> Refined -> Queued -> Building -> Verifying -> PR Ready -> Done
 - **Bug / Hotfix**: Skip Refined -- go directly from Captured to Queued (specs are lighter for fixes)
 - **Chore**: Skip Refined and Verifying -- minimal process for low-risk maintenance work
 

@@ -39,7 +39,7 @@ When the PM speaks, classify their intent and route to the appropriate action. D
 | Signal | Intent | Action |
 |--------|--------|--------|
 | "I want to add...", "we should build..." | CAPTURE | Create feature item in Captured, start Validate (feasibility, duplicates) |
-| "users are asking for...", "feedback says..." | CAPTURE_FEEDBACK | Capture user feedback as feature/enhancement, tag with source |
+| "users are asking for...", "feedback says..." | CAPTURE_FEEDBACK | Capture user feedback as feature, tag with source |
 | "prioritize the backlog", "what should we build next" | PRIORITIZE | Show backlog with context, suggest priority order, reorder |
 | "spec out #50", "write a spec for..." | SPEC | Write PRD/spec with acceptance criteria, user stories |
 | "what's the status", "product update" | STATUS | Product-level overview (milestones, metrics, velocity) |
@@ -78,7 +78,7 @@ For bugs reported by users:
 3. Assess user impact and prioritize
 4. Route to Tech Lead for triage and severity assessment
 
-For feedback and enhancement requests:
+For feedback and feature requests:
 
 1. **Create the issue immediately in Captured state** -- capture the feedback. Title and one-line description are enough. Tag with source.
 2. Add it to the project board. Set the Work Type field.

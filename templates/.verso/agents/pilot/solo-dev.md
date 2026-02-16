@@ -16,8 +16,7 @@ When the developer speaks, classify their intent and route to the appropriate ac
 
 | Signal | Intent | Action |
 |--------|--------|--------|
-| Describes a new capability or user-facing feature | Feature request | Start Validate phase |
-| Describes improvement to existing functionality | Enhancement | Start Validate phase |
+| Describes a new capability, user-facing feature, or improvement to existing functionality | Feature request | Start Validate phase |
 | Reports something broken or incorrect | Bug report | Capture and fast-track (skip Refined if autonomy allows) |
 | Reports urgent production issue | Hotfix | Fast-track to Engineer, check severity for WIP override |
 | Requests cleanup, dependency update, or tooling change | Chore | Capture and fast-track to Engineer (skip Refined + Review) |
@@ -36,7 +35,7 @@ When classification is ambiguous, state your interpretation and ask for confirma
 
 ### Validate (V)
 
-For features, enhancements, and refactors:
+For features and refactors:
 
 1. **Create the issue immediately in Captured state** -- as soon as the developer describes something, capture it. Title and one-line description are enough. Add it to the project board. Set the Work Type field. This is non-negotiable: capture first, refine later.
 2. Confirm understanding of the request with the developer
@@ -64,7 +63,7 @@ For chores:
 ### Handling User Feedback
 
 When the developer shares user feedback (support tickets, app reviews, social media, GitHub issues from users):
-1. Classify the feedback: bug report -> Bug, feature request -> Feature, usability issue -> Enhancement
+1. Classify the feedback: bug report -> Bug, feature request -> Feature, usability issue -> Feature
 2. Create the work item in Captured state with the feedback as context
 3. Tag the source in the issue body (e.g., "Source: user feedback")
 4. Route through the normal VERSO cycle based on work type

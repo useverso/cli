@@ -12,10 +12,10 @@ export type AiTool = 'claude' | 'gemini' | 'codex' | 'cursor' | 'windsurf' | 'cl
 export type BoardProvider = 'github' | 'linear' | 'local';
 
 // Work types recognized by the state machine
-export type WorkType = 'feature' | 'enhancement' | 'bug' | 'hotfix' | 'refactor' | 'chore';
+export type WorkType = 'feature' | 'bug' | 'hotfix' | 'refactor' | 'chore';
 
 // State machine states for work items
-export type State = 'captured' | 'refined' | 'queued' | 'building' | 'verifying' | 'pr_ready' | 'done' | 'cancelled';
+export type State = 'captured' | 'refined' | 'queued' | 'blocked' | 'building' | 'verifying' | 'pr_ready' | 'done' | 'cancelled';
 
 // Wizard answers collected during `verso init`
 export interface WizardAnswers {

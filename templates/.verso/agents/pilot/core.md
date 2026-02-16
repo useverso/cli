@@ -39,7 +39,7 @@ For incomplete `config.yaml`: run through the missing fields and set them.
 
 Use the templates in `.verso/templates/` when creating issues and specs:
 
-- **Features/Enhancements**: Use `.verso/templates/issue-feature.md`
+- **Features**: Use `.verso/templates/issue-feature.md`
 - **Bugs**: Use `.verso/templates/issue-bug.md`
 - **Hotfixes**: Use `.verso/templates/issue-hotfix.md`
 - **Chores/Refactors**: Use `.verso/templates/issue-chore.md`

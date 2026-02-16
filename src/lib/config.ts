@@ -26,7 +26,7 @@ export async function writeYamlDocument(filePath: string, doc: Document): Promis
  *   scale: solo | small-team | startup | enterprise
  *   autonomy:
  *     feature: 2
- *     enhancement: 2
+ *     bug: 3
  *     ...
  *   wip:
  *     building: 2

@@ -34,7 +34,7 @@ changelog:
     - name: Added
       types: [feature]
     - name: Changed
-      types: [enhancement, refactor]
+      types: [refactor]
     - name: Fixed
       types: [bug, hotfix]
     - name: Removed

@@ -7,7 +7,7 @@ items: []
 # Item schema:
 # - id: 1                           # Auto-incrementing integer
 #   title: "Add user authentication"
-#   type: feature                    # feature | enhancement | bug | hotfix | chore | refactor
+#   type: feature                    # feature | bug | hotfix | chore | refactor
 #   state: captured                  # captured | refined | queued | building | verifying | pr_ready | done | cancelled
 #   assignee: ""                     # Developer name or empty
 #   autonomy: 2                      # Autonomy level for this item (from config)
