@@ -12,9 +12,14 @@ export interface BoardItem {
   autonomy: number;
   branch: string;
   pr: string;
+  retries: number;
+  complexity: 'simple' | 'medium' | 'complex' | '';
+  agent_sessions: number;
   created_at: string;
   updated_at: string;
   labels: string[];
+  transitions: Array<{ from: State; to: State; trigger: string; actor: string; at: string }>;
+  reviews: Array<{ verdict: string; criteria_met: string; summary: string; issues: string[]; at: string }>;
   external: Record<string, unknown>;
 }
 

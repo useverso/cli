@@ -85,6 +85,15 @@ board:
   #   team: ""
 
 # ---------------------------------------------------------------------------
+# Delegation Strategy
+# ---------------------------------------------------------------------------
+# How the Pilot delegates work to Builder and Reviewer agents.
+#   subagents: Builder/Reviewer run as Claude Code subagents (background, parallel)
+#   team: Builder/Reviewer run as Agent Team teammates (parallel, richer communication)
+# Agent Teams requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS enabled.
+delegation: subagents
+
+# ---------------------------------------------------------------------------
 # Tech Debt Policy
 # ---------------------------------------------------------------------------
 # VERSO tracks the ratio of debt-reduction work to feature work.

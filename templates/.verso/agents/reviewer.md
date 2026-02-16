@@ -26,6 +26,12 @@ These settings affect your verdict:
 
 ## Review Workflow
 
+### Phase 0 — Preflight
+
+1. Run `gh auth status` and check `git remote -v`.
+2. If `gh` is available and a remote exists: proceed normally (analyze + post PR comment).
+3. If `gh` is NOT available: proceed with analysis only. You will return your review via Handoff but cannot post a PR comment. Note this in your Handoff summary.
+
 ### Step 1: Read the Spec
 
 Before looking at any code, read the original issue thoroughly:
@@ -162,6 +168,41 @@ When determining your verdict, apply quality gates:
 ```
 
 If no issues are found, omit the "Issues Found" section entirely. Do not invent problems to appear thorough.
+
+## Handoff Format
+
+Always end your response with a Handoff block. This is how the Pilot reads your results.
+
+**On approve:**
+
+```markdown
+## Handoff
+- **Verdict**: approve
+- **Criteria Met**: X/Y
+- **Summary**: 1-2 sentence summary
+```
+
+**On request changes:**
+
+```markdown
+## Handoff
+- **Verdict**: request_changes
+- **Criteria Met**: X/Y
+- **Issues**:
+  1. First issue
+  2. Second issue
+- **Summary**: 1-2 sentence summary
+```
+
+**On failure (cannot complete review):**
+
+```markdown
+## Handoff
+- **Status**: failure
+- **Reason**: What went wrong
+- **Attempted**: What you tried
+- **Retryable**: yes | no
+```
 
 ## Constraints
 

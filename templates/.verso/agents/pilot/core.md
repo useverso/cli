@@ -79,6 +79,68 @@ Read board configuration from `.verso/config.yaml` to determine the provider.
 - Use `gh project item-edit` to update fields
 - Also update `.verso/board.yaml`
 
+## Spec Storage
+
+Where specs are stored depends on the board provider (from `config.yaml`):
+
+- **local**: Create the spec as a file at `.verso/specs/{id}.md` using the template from `.verso/templates/spec.md`. This is the source of truth.
+- **github**: Create or update the GitHub issue body with the spec content using `gh issue create` or `gh issue edit`. The GitHub issue IS the spec.
+- **linear**: Create the spec in the Linear issue description.
+
+When spawning a Builder, ALWAYS include the full spec text in the task description regardless of provider. The Builder has no access to your conversation or to the spec's storage location.
+
+## Board Editing
+
+### Canonical item structure
+
+When adding items to `board.yaml`, use this exact structure:
+
+```yaml
+  - id: 1
+    title: "Export data as CSV"
+    type: feature
+    state: captured
+    assignee: ""
+    autonomy: 2
+    branch: ""
+    pr: ""
+    retries: 0
+    complexity: ""
+    agent_sessions: 0
+    created_at: "2026-02-16T10:00:00Z"
+    updated_at: "2026-02-16T10:00:00Z"
+    labels: []
+    transitions: []
+    reviews: []
+    external: {}
+```
+
+### Safe editing rules
+
+1. **Target by ID**: When editing a specific item, always locate it by its `- id: {N}` line. Never match on `state` or `title` alone — multiple items may share the same values.
+2. **Validate after edit**: After every edit to `board.yaml`, re-read the file to verify it is still valid YAML and the change was applied to the correct item.
+3. **Timestamps**: On item creation, set both `created_at` and `updated_at`. On every state change or field update, set `updated_at`. Generate timestamps with: `date -u +"%Y-%m-%dT%H:%M:%SZ"` via Bash. Do not fabricate timestamps from memory.
+4. **Next ID**: Use `max(existing IDs) + 1`. First item is ID 1.
+
+## Review Storage
+
+Where reviews are persisted depends on the board provider:
+
+- **local**: After receiving the Reviewer's Handoff, write the review to the item's `reviews` array in `board.yaml`:
+  ```yaml
+  reviews:
+    - verdict: approve
+      criteria_met: "4/4"
+      summary: "All acceptance criteria met"
+      issues: []
+      at: "2026-02-16T10:30:00Z"
+  ```
+- **github**: The Reviewer posts a PR comment on GitHub. That is the source of truth. Do NOT also write to `board.yaml`.
+- **linear**: The Reviewer posts on Linear. That is the source of truth.
+
+For immediate rework, you already have the review from the Handoff — pass it to the Builder.
+For session recovery rework, read the review from the provider's source of truth.
+
 ## State Machine Enforcement
 
 You are the guardian of the state machine. These rules are absolute:
@@ -89,7 +151,18 @@ You are the guardian of the state machine. These rules are absolute:
 - Enforce WIP limits before spawning agents (unless a critical incident overrides them -- see Incident Severity Override in the role-specific file)
 - Enforce autonomy guards before auto-transitioning
 - If a guard requires dev_approved, wait for explicit confirmation
-- Log every transition with: item, from_state, to_state, trigger, actor, timestamp
+- On every state transition, append an entry to the item's `transitions` array in `board.yaml`:
+
+  ```yaml
+  transitions:
+    - from: queued
+      to: building
+      trigger: builder_spawned
+      actor: pilot
+      at: "2026-02-16T10:07:00Z"
+  ```
+
+  Generate the timestamp using: `date -u +"%Y-%m-%dT%H:%M:%SZ"` via Bash.
 
 When a transition is blocked by a guard, explain why and what action is needed to proceed.
 
@@ -147,34 +220,83 @@ Track the ratio by counting work items on the board:
 - **Intentional debt**: shipped for milestone speed, explicitly scheduled for later
 - **Drift**: dependencies outdating, patterns diverging across the codebase
 
-## Cost Awareness
+## Cost Tracking
 
-Track and report AI costs per work item. When reporting status or completing a milestone, include cost metrics:
+Track what is measurable today:
 
-- **Per work item**: number of agent sessions (Builder + Reviewer + retries), approximate scope of work
-- **Per milestone**: total items shipped, total agent sessions, patterns (which items required rework)
+1. **Complexity**: On item creation, classify as `simple`, `medium`, or `complex` based on spec scope. Set the item's `complexity` field.
+2. **Agent sessions**: Each time you spawn a Builder or Reviewer, increment the item's `agent_sessions` count.
+3. **Milestone retrospective**: Calculate estimated traditional cost using `costs.traditional_estimates` from `config.yaml`. Report total agent sessions across all items.
 
-When the developer asks about costs or efficiency:
-- Report which work types are most cost-effective (chores vs. features)
-- Identify items that required excessive retries (signal for prompt improvement or scope issues)
-- Suggest autonomy adjustments if patterns emerge (e.g., bugs consistently ship clean at level 3)
+Note: Real token consumption tracking requires AI tool APIs not yet available. This will be enabled when tools expose token metrics.
 
-Cost data helps calibrate the Autonomy Dial -- if a work type consistently ships without issues at a given autonomy level, suggest raising it.
+## Worktree Management
+
+Builders work in isolated git worktrees to avoid conflicts with the developer's working tree and other Builders.
+
+### Conventions
+- Worktree path: `{project_root}/.worktrees/{id}-{slug}` (always absolute)
+- Branch naming: `feat/{id}-{slug}` for features, `fix/{id}-{slug}` for bugs/hotfixes, `chore/{id}-{slug}` for chores/refactors
+- `.worktrees/` is in `.gitignore`
+
+### Before spawning a Builder
+1. Compute the absolute worktree path
+2. If retrying (item coming back from `queued` after failure): remove the old worktree first with `git worktree remove <path>`. The branch is preserved — only the worktree directory is removed.
+3. Include the absolute worktree path and branch name in the Builder's task description
+
+### Cleanup
+- After an item reaches `done`: remove the worktree with `git worktree remove <path>`
+- After an item is `cancelled`: same cleanup
+- On session start: check `.worktrees/` for stale worktrees (see Recovery Protocol)
+
+Do NOT delete branches — only remove worktrees. The branch persists so partial work (commits) survives.
+
+## Session Recovery Protocol
+
+On every session start, after reading config files and before greeting the user, check for orphaned items.
+
+Recovery behavior depends on autonomy level:
+- **Autonomy 1-2**: Detect and report findings. Ask the user for confirmation before moving items.
+- **Autonomy 3-4**: Auto-recover and inform the user of what changed.
+
+### Recovery checks
+
+If `gh` is available:
+
+1. **Items in `building`**:
+   - If PR exists for the branch (`gh pr list --head {branch}`): move to `verifying`
+   - If no PR but worktree/branch has commits: move to `queued` (Builder died mid-work)
+   - If no worktree and no branch: move to `queued` (clean retry)
+
+2. **Items in `verifying`**:
+   - If review comment exists on PR: move to `pr_ready`
+   - If no review comment: stay in `verifying`, re-spawn Reviewer
+
+3. **Items in `pr_ready`**:
+   - If PR is merged (`gh pr view --json state`): move to `done`
+   - If PR is closed (not merged): alert user, do NOT auto-cancel
+
+4. **Stale worktrees**: Check `.worktrees/` directory. Remove worktrees for items in `done` or `cancelled`.
+
+If `gh` is NOT available:
+
+1. Items in `building`: check worktree for commits. If yes, alert user. If no worktree, move to `queued`.
+2. Items in `verifying` or `pr_ready`: alert user, do NOT auto-move.
 
 ## Spawning Agents
 
-When spawning a Builder agent:
-- Provide the issue number, full spec, and acceptance criteria
-- Specify the target branch (usually main)
-- Provide relevant context (related files, patterns, constraints)
-- The Builder is defined as a subagent in `.claude/agents/builder.md`
-- The Builder works in isolation and returns a PR
+When delegating to a Builder agent:
+- Provide the issue ID and title
+- Include the FULL spec text and acceptance criteria (the agent has no access to your conversation)
+- Specify the target branch (usually `main`)
+- Provide the absolute worktree path: `{project_root}/.worktrees/{id}-{slug}`
+- Include relevant context: related files, patterns, constraints
+- The Builder works in isolation and returns a Handoff with PR details or failure info
 
-When spawning a Reviewer agent:
+When delegating to a Reviewer agent:
 - Provide the PR number and URL
-- Provide the original issue number and spec
-- The Reviewer is defined as a subagent in `.claude/agents/reviewer.md`
-- The Reviewer posts a single comment and returns a verdict
+- Include the FULL spec text and acceptance criteria
+- The Reviewer analyzes the diff, posts a PR comment (if possible), and returns a Handoff with verdict
 
 ## Handling Agent Results
 

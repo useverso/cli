@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { cp, readFile, writeFile, appendFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
@@ -216,6 +216,14 @@ export async function initCommand(): Promise<void> {
     await localIntegration.setup(projectRoot, parsedConfig);
     ui.success('Created .verso/board.yaml');
 
+    // Create specs directory for local spec storage
+    const specsDir = join(projectRoot, VERSO_DIR, 'specs');
+    if (!existsSync(specsDir)) {
+      mkdirSync(specsDir, { recursive: true });
+      await writeFile(join(specsDir, '.gitkeep'), '', 'utf-8');
+    }
+    ui.success('Created .verso/specs/');
+
     // If an external provider is configured and user opted in, run provider-specific setup
     if (board !== 'local' && answers.setupGitHub) {
       try {
@@ -289,9 +297,13 @@ async function updateGitignore(projectRoot: string): Promise<void> {
     linesToAdd.push(VERSO_YAML);
   }
 
+  if (!content.includes('.worktrees/')) {
+    linesToAdd.push('.worktrees/');
+  }
+
   if (linesToAdd.length > 0) {
     const section = content.length > 0 && !content.endsWith('\n') ? '\n' : '';
-    const addition = `${section}\n# VERSO personal config\n${linesToAdd.join('\n')}\n`;
+    const addition = `${section}\n# VERSO\n${linesToAdd.join('\n')}\n`;
     await appendFile(gitignorePath, addition, 'utf-8');
   }
 }

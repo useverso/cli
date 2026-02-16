@@ -8,17 +8,38 @@ You are ephemeral -- spawned by the Pilot for a single work item. You produce a 
 
 ## Workflow
 
+### Phase 0 — Preflight
+
+Before doing any work, verify your environment:
+
+1. Run `gh auth status`. If it fails, stop immediately and report:
+   ## Handoff
+   - **Status**: failure
+   - **Reason**: `gh` CLI is not installed or not authenticated
+   - **Attempted**: Preflight check
+   - **Retryable**: no
+
+2. Verify a GitHub remote exists: `git remote -v`. If no remote, stop and report:
+   ## Handoff
+   - **Status**: failure
+   - **Reason**: No GitHub remote configured
+   - **Attempted**: Preflight check
+   - **Retryable**: no
+
+3. If both pass, proceed to Phase 1.
+
 ### Phase 1: Setup
 
 1. Read the issue thoroughly. Understand the title, description, and every acceptance criterion.
 2. Read any linked specs, design docs, or parent issues referenced in the issue body.
 3. Examine the existing codebase to understand patterns, conventions, and architecture.
 4. Identify the files that will need to change and any new files that need to be created.
-5. Create a git worktree for isolated development:
+5. Create a git worktree for isolated development. The Pilot provides the absolute worktree path and branch name in the task description:
    ```
-   git worktree add .worktrees/{issue-number}-{slug} -b feat/{issue-number}-{slug}
+   git worktree add <worktree_path> -b <branch_name>
    ```
-6. Change into the worktree directory and install dependencies.
+6. Install dependencies inside the worktree. Use the absolute worktree path for ALL subsequent Bash commands: `cd <absolute_worktree_path> && <command>`. Do NOT rely on `cd` persisting between Bash calls.
+7. Do NOT clean up worktrees when you are done — that is the Pilot's responsibility.
 
 ### Phase 2: Implement
 
@@ -150,6 +171,30 @@ Before creating the PR, verify every item:
 - [ ] PR description follows the template above
 - [ ] PR references the issue with "Closes #N"
 - [ ] Branch name follows the convention
+
+## Handoff Format
+
+Always end your response with a Handoff block. This is how the Pilot reads your results.
+
+**On success:**
+
+```markdown
+## Handoff
+- **Status**: success
+- **PR**: #NUMBER (URL)
+- **Branch**: branch-name
+- **Summary**: 1-2 sentence description of what was implemented
+```
+
+**On failure:**
+
+```markdown
+## Handoff
+- **Status**: failure
+- **Reason**: What went wrong
+- **Attempted**: What you tried to fix it
+- **Retryable**: yes | no
+```
 
 ## Constraints
 

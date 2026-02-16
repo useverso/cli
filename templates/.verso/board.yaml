@@ -8,14 +8,19 @@ items: []
 # - id: 1                           # Auto-incrementing integer
 #   title: "Add user authentication"
 #   type: feature                    # feature | bug | hotfix | chore | refactor
-#   state: captured                  # captured | refined | queued | building | verifying | pr_ready | done | cancelled
+#   state: captured                  # captured | refined | queued | blocked | building | verifying | pr_ready | done | cancelled
 #   assignee: ""                     # Developer name or empty
 #   autonomy: 2                      # Autonomy level for this item (from config)
 #   branch: ""                       # Git branch name (set when building)
 #   pr: ""                           # PR number or URL (set when PR created)
+#   retries: 0                       # Retry count, incremented on build failure
+#   complexity: ""                   # simple | medium | complex, set by Pilot at creation
+#   agent_sessions: 0                # Count of Builder/Reviewer spawns
 #   created_at: ""                   # ISO timestamp
 #   updated_at: ""                   # ISO timestamp
 #   labels: []                       # Additional labels
+#   transitions: []                  # State change history: [{from, to, trigger, actor, at}]
+#   reviews: []                      # Review history: [{verdict, criteria_met, summary, issues, at}]
 #   external:                        # External provider references
 #     github_issue: 0                # GitHub issue number (if synced)
 #     github_project_item: ""        # GitHub project item ID (if synced)
