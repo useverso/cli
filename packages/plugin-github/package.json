@@ -1,0 +1,30 @@
+{
+  "name": "@useverso/plugin-github",
+  "version": "0.1.0",
+  "description": "GitHub integration plugin for VERSO CLI — board, review, CI, and deploy",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": ["verso", "plugin", "github"],
+  "author": "Boudy de Geer",
+  "license": "MIT",
+  "peerDependencies": {
+    "@useverso/cli": "^0.1.0"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

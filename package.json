@@ -1,0 +1,59 @@
+{
+  "name": "@useverso/cli",
+  "version": "0.1.0",
+  "description": "VERSO — the first development framework designed for agentic coding",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./plugin-api": "./dist/plugin-api.js"
+  },
+  "bin": {
+    "verso": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "development-framework",
+    "agentic-coding",
+    "cli",
+    "state-machine",
+    "verso"
+  ],
+  "author": "Boudy de Geer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/useverso/cli"
+  },
+  "homepage": "https://useverso.dev",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "dependencies": {
+    "@inquirer/prompts": "^8.3.0",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.3.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

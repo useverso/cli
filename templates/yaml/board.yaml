@@ -1,0 +1,41 @@
+# VERSO Local Board
+# This is the local source of truth for work items.
+# Sync with external providers (GitHub, Linear) via `verso sync`.
+
+schema_version: 2
+
+items: []
+
+# Item schema:
+# - id: 1                           # Auto-incrementing integer
+#   title: "Add user authentication"
+#   type: feature                    # feature | bug | hotfix | chore | refactor
+#   state: captured                  # captured | refined | queued | blocked | building | verifying | pr_ready | done | cancelled
+#   assignee: ""                     # Developer name or empty
+#   autonomy: 2                      # Autonomy level for this item (from config)
+#   branch: ""                       # Git branch name (set when building)
+#   pr: ""                           # PR number or URL (set when PR created)
+#   retries: 0                       # Retry count, incremented on build failure
+#   complexity: ""                   # simple | medium | complex, set by Pilot at creation
+#   agent_sessions: 0                # Count of Builder/Reviewer spawns
+#   created_at: ""                   # ISO timestamp
+#   updated_at: ""                   # ISO timestamp
+#   labels: []                       # Additional labels
+#   transitions: []                  # State change history: [{from, to, trigger, actor, at}]
+#   reviews: []                      # Review history: [{verdict, criteria_met, summary, issues, at}]
+#   external:                        # External provider references
+#     github_issue: 0                # GitHub issue number (if synced)
+#     github_project_item: ""        # GitHub project item ID (if synced)
+#     linear_id: ""                  # Linear issue ID (if synced)
+#   description: ""                  # Free-text description (v2)
+#   spec_path: ""                    # Path to spec file (v2)
+#   blocked_by: []                   # IDs of blocking items (v2)
+#   blocked_reason: ""               # Why this item is blocked (v2)
+#   milestone: ""                    # Milestone this item belongs to (v2)
+#   costs:                           # Cost tracking (v2)
+#     tokens_in: 0
+#     tokens_out: 0
+#     api_cost: 0
+#     agent_wall_time: 0
+#     dev_gate_time: 0
+#     dev_review_time: 0
