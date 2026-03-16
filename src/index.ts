@@ -9,7 +9,12 @@ import { registerReviewCommand } from './commands/review.js';
 import { registerShipCommand } from './commands/ship.js';
 import { registerStatusCommand } from './commands/status.js';
 import { registerSyncCommand } from './commands/sync.js';
+import { registerRoadmapCommand } from './commands/roadmap.js';
+import { registerConfigCommand } from './commands/config.js';
+import { registerRecoverCommand } from './commands/recover.js';
+import { registerSpecCommand } from './commands/spec.js';
 import { registerUpgradeCommand } from './commands/upgrade.js';
+import { registerWorktreeCommand } from './commands/worktree.js';
 
 const program = new Command();
 
@@ -28,6 +33,11 @@ registerStatusCommand(program);
 registerMetricsCommand(program);
 registerDoctorCommand(program);
 registerSyncCommand(program);
+registerRoadmapCommand(program);
+registerConfigCommand(program);
+registerSpecCommand(program);
+registerRecoverCommand(program);
 registerUpgradeCommand(program);
+registerWorktreeCommand(program);
 
 program.parse();

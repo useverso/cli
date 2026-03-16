@@ -1,5 +1,7 @@
 import fs from 'node:fs';
+import { join } from 'node:path';
 import { Command } from 'commander';
+import yaml from 'js-yaml';
 
 import * as board from '../core/board.js';
 import { loadConfig } from '../core/config.js';
@@ -23,6 +25,13 @@ function versoDir(): string {
   return dir;
 }
 
+function loadRoadmap(versoDir: string): Record<string, unknown> | null {
+  const roadmapPath = join(versoDir, 'roadmap.yaml');
+  if (!fs.existsSync(roadmapPath)) return null;
+  const content = fs.readFileSync(roadmapPath, 'utf-8');
+  return yaml.load(content) as Record<string, unknown>;
+}
+
 export function registerStatusCommand(program: Command): void {
   program
     .command('status')
@@ -32,6 +41,7 @@ export function registerStatusCommand(program: Command): void {
       const dir = versoDir();
       const boardFile = board.loadBoard(dir);
       const cfg = loadConfig(dir);
+      const roadmap = loadRoadmap(dir);
 
       const total = boardFile.items.length;
       const done = board.countInState(boardFile, 'done');
@@ -153,6 +163,33 @@ export function registerStatusCommand(program: Command): void {
           for (const entry of pluginStatusEntries) {
             console.log(`plugin_${entry.label}: ${entry.details.join(', ')}`);
           }
+          // Config fields
+          console.log(`config_scale: ${cfg.scale}`);
+          for (const [wt, level] of Object.entries(cfg.autonomy)) {
+            console.log(`config_autonomy_${wt}: ${level}`);
+          }
+          console.log(`config_quality_security_gate: ${cfg.quality.security_gate}`);
+          console.log(`config_quality_accessibility_gate: ${cfg.quality.accessibility_gate}`);
+          console.log(`config_quality_min_coverage: ${cfg.quality.min_coverage}`);
+          console.log(`config_quality_require_tests: ${cfg.quality.require_tests}`);
+          console.log(`config_ci_block_transition: ${cfg.ci.block_transition}`);
+          console.log(`config_ci_required_checks: ${cfg.ci.required_checks.join(',')}`);
+          console.log(`config_board_provider: ${cfg.board.provider}`);
+          console.log(`config_review_max_rounds: ${cfg.review.max_rounds}`);
+          console.log(`config_build_max_retries: ${cfg.build.max_retries}`);
+          console.log(`config_debt_target_ratio: ${cfg.debt.target_ratio}`);
+          console.log(`config_costs_enabled: ${cfg.costs.enabled}`);
+          // Roadmap fields
+          if (roadmap) {
+            console.log(`roadmap_vision: ${roadmap.vision ?? ''}`);
+            const horizons = roadmap.horizons as Record<string, unknown> | undefined;
+            if (horizons) {
+              const now = horizons.now as Record<string, unknown> | undefined;
+              console.log(`roadmap_now: ${now?.milestone ?? ''}`);
+              const next = horizons.next as Record<string, unknown> | undefined;
+              console.log(`roadmap_next: ${next?.milestone ?? ''}`);
+            }
+          }
           break;
         case 'json': {
           const result = {
@@ -166,6 +203,19 @@ export function registerStatusCommand(program: Command): void {
               building: { current: building, max: cfg.wip.building },
               pr_ready: { current: prReady, max: cfg.wip.pr_ready },
             },
+            config: {
+              scale: cfg.scale,
+              autonomy: cfg.autonomy,
+              quality: cfg.quality,
+              ci: cfg.ci,
+              incidents: cfg.incidents,
+              costs: cfg.costs,
+              board: cfg.board,
+              review: cfg.review,
+              build: cfg.build,
+              debt: cfg.debt,
+            },
+            roadmap: roadmap || undefined,
             plugins: pluginStatusEntries.length > 0
               ? pluginStatusEntries.reduce((acc, e) => {
                   acc[e.label] = e.details;

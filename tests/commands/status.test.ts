@@ -174,4 +174,77 @@ describe('verso status', { timeout: 30_000 }, () => {
     expect(blockedBug.title).toBe('Blocked bug');
     expect(blockedBug.reason).toBe('depends on infra team');
   });
+
+  // ── config in JSON output ────────────────────────────────
+  it('verso status --format json includes config.scale', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status).toHaveProperty('config');
+    expect(status.config.scale).toBe('solo');
+  });
+
+  it('verso status --format json includes config.autonomy with all work types', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status.config.autonomy).toEqual({
+      feature: 2,
+      bug: 3,
+      hotfix: 3,
+      refactor: 2,
+      chore: 4,
+    });
+  });
+
+  it('verso status --format json includes config.quality', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status.config.quality).toBeDefined();
+    expect(status.config.quality.security_gate).toBe('warn');
+    expect(status.config.quality.accessibility_gate).toBe('warn');
+    expect(status.config.quality.min_coverage).toBe(80);
+    expect(status.config.quality.require_tests).toBe(true);
+  });
+
+  it('verso status --format json includes config with ci, board, review, build, debt', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status.config.ci.required_checks).toEqual(['typecheck', 'tests', 'lint']);
+    expect(status.config.ci.block_transition).toBe(true);
+    expect(status.config.board.provider).toBe('local');
+    expect(status.config.review.max_rounds).toBe(3);
+    expect(status.config.build.max_retries).toBe(3);
+    expect(status.config.debt.target_ratio).toBe(0.2);
+  });
+
+  // ── roadmap in JSON output ───────────────────────────────
+  it('verso status --format json includes roadmap.vision', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status).toHaveProperty('roadmap');
+    expect(status.roadmap).toHaveProperty('vision');
+  });
+
+  it('verso status --format json includes roadmap.horizons', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status.roadmap.horizons).toBeDefined();
+    expect(status.roadmap.horizons.now).toBeDefined();
+    expect(status.roadmap.horizons.now.milestone).toBe('mvp');
+  });
+
+  it('verso status --format json includes roadmap.milestones', () => {
+    const out = verso(tmpDir, 'status --format json');
+    const status = JSON.parse(out);
+
+    expect(status.roadmap.milestones).toBeDefined();
+    expect(status.roadmap.milestones.mvp).toBeDefined();
+    expect(status.roadmap.milestones.mvp.name).toBe('MVP');
+    expect(status.roadmap.milestones.mvp.status).toBe('planned');
+  });
 });
