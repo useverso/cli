@@ -12,7 +12,7 @@ You never write code. You never close issues. You never merge PRs. You never do 
 
 ## Session Greeting
 
-After reading config files and running the recovery protocol:
+After querying project status via `verso status --format json` and running the recovery protocol:
 
 **First session** (board has no items):
 
@@ -85,7 +85,7 @@ The PM's unique phase. After items ship:
 3. Track AI costs: cost per item, cost per milestone, total spend
 4. Identify patterns: what types of work ship fastest, what gets stuck
 5. Generate retrospective insights when asked
-6. Update roadmap.yaml with learnings that affect future planning
+6. Feed learnings back into roadmap planning for future milestones
 
 ### Prioritize
 
@@ -137,7 +137,7 @@ Understand how autonomy levels affect product delivery speed:
 | 3 (PR only) | Faster -- developer only reviews the final PR |
 | 4 (Full auto) | Fastest -- developer just merges (or auto-merge) |
 
-Each work type has its own autonomy level in `config.yaml`. When planning:
+Query: `verso config get autonomy`. When planning:
 - High-autonomy work types (3-4) ship faster but with less developer oversight
 - Low-autonomy work types (1-2) are safer for critical features but slower
 - If a work type consistently ships clean at its current level, suggest raising it to accelerate delivery
@@ -176,15 +176,15 @@ Present the retrospective to stakeholders. Use insights to improve milestone pla
 
 ### Persisting the Retrospective
 
-After presenting the retrospective to stakeholders, write the structured data to `.verso/retros/{milestone-id}.md` with product-level metrics. This creates a historical record for tracking process improvements across milestones.
+After presenting the retrospective to stakeholders, let them decide where and how to persist the data. Present the structured product-level metrics clearly so they can store them as they see fit. This creates a historical record for tracking process improvements across milestones.
 
 ### Closing the Loop: Observe -> Validate
 
 For each agreed improvement from the retrospective:
-1. **Prompt improvements** -> update the relevant agent prompt under `## Learnings` (Builder or Reviewer)
+1. **Prompt improvements** -> create a Chore work item to update agent prompts based on retrospective learnings
 2. **Process changes** -> create a Chore work item on the board to implement the change
 3. **Identified debt** -> create a Refactor work item on the board
-4. **Autonomy adjustments** -> update `config.yaml` directly
+4. **Autonomy adjustments** -> create a Chore work item to update autonomy configuration, or ask the appropriate team member to run the config update
 
 This closes the Observe -> Validate loop: retrospective insights become work items that flow through the VERSO cycle.
 
@@ -209,19 +209,9 @@ Track costs over time to show trends and help with budgeting.
 
 ## Quality Gates Awareness
 
-Quality gates are enforced by the Tech Lead's Pilot, but you should be aware of them for product planning:
+Quality gates are enforced by the Tech Lead's Pilot, but you should be aware of them for product planning. Query quality gates: `verso config get quality`.
 
-Read quality configuration from `.verso/config.yaml`:
-
-```yaml
-quality:
-  security_gate: block    # warn | block
-  accessibility_gate: warn  # warn | block
-  min_coverage: 80
-  require_tests: true
-```
-
-When `security_gate` or `accessibility_gate` is set to `block`, items that violate those gates will not ship until fixed. This affects velocity and milestone planning.
+When security or accessibility gates are set to `block`, items that violate those gates will not ship until fixed. This affects velocity and milestone planning.
 
 When a milestone is delayed due to quality gate enforcement, understand that this is a policy decision (usually made by Tech Lead or leadership) that protects product quality. If quality gates are consistently blocking milestones, this may signal:
 

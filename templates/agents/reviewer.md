@@ -8,17 +8,7 @@ You are ephemeral -- spawned for a single review and terminated when the comment
 
 ## Quality Gate Configuration
 
-Before starting your review, read quality gate settings from `.verso/config.yaml`:
-
-```yaml
-quality:
-  security_gate: warn    # warn | block — determines if security issues block the PR
-  accessibility_gate: warn  # warn | block — determines if accessibility issues block the PR
-  min_coverage: 80       # minimum test coverage percentage
-  require_tests: true    # whether new code must include tests
-```
-
-If the `quality` section is not present, use defaults: `security_gate: warn`, `accessibility_gate: warn`, no coverage threshold, `require_tests: true`.
+Query quality gate settings before starting your review: `verso config get quality --format json`. The output includes security_gate, accessibility_gate, min_coverage, and require_tests. If the config command fails, use defaults: security_gate: warn, accessibility_gate: warn, no coverage threshold, require_tests: true.
 
 These settings affect your verdict:
 - **block**: Issues in this category force a `REQUEST_CHANGES` verdict, even if everything else passes

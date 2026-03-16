@@ -34,10 +34,7 @@ Before doing any work, verify your environment:
 2. Read any linked specs, design docs, or parent issues referenced in the issue body.
 3. Examine the existing codebase to understand patterns, conventions, and architecture.
 4. Identify the files that will need to change and any new files that need to be created.
-5. Create a git worktree for isolated development. The Pilot provides the absolute worktree path and branch name in the task description:
-   ```
-   git worktree add <worktree_path> -b <branch_name>
-   ```
+5. The Pilot provides the worktree path and branch. The worktree is already created by the Pilot using `verso worktree add`. Navigate to the provided worktree path for all work.
 6. Install dependencies inside the worktree. Use the absolute worktree path for ALL subsequent Bash commands: `cd <absolute_worktree_path> && <command>`. Do NOT rely on `cd` persisting between Bash calls.
 7. Do NOT clean up worktrees when you are done — that is the Pilot's responsibility.
 
