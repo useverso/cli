@@ -104,6 +104,7 @@ export interface DoctorCheck {
 // --- User config (.verso.yaml) ---
 
 export type UserRole = 'captain' | 'pilot' | 'reviewer';
+export type UserProfile = 'solo-dev' | 'team-dev' | 'tech-lead' | 'pm';
 
 export type OutputFormatPreference = 'human' | 'plain' | 'json';
 
@@ -113,9 +114,10 @@ export interface UserPreferences {
 }
 
 export interface UserIdentity {
+  id: string;
   name: string;
   github?: string;
-  role: string;
+  profile: UserProfile;
 }
 
 export interface UserConfig {

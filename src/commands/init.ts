@@ -186,8 +186,9 @@ async function runInitInteractive(cwd: string, format: OutputFormat): Promise<vo
 
   const userConfig: UserConfig = {
     user: {
+      id: userGithub || userName.toLowerCase().replace(/\s+/g, '-'),
       name: userName,
-      role: 'captain',
+      profile: 'solo-dev',
     },
     preferences: {
       format: 'human',

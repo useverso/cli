@@ -526,3 +526,44 @@ describe('scaffoldVerso scale variations', () => {
     expect(pilot).toContain('PM');
   });
 });
+
+// ---------------------------------------------------------------------------
+// RED phase: init --defaults creates .verso.yaml with new schema
+// ---------------------------------------------------------------------------
+describe('init --defaults creates .verso.yaml with new schema', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'verso-init-schema-test-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('.verso.yaml has user.id field', () => {
+    initDefaults(tmpDir);
+    const content = readFileSync(join(tmpDir, '.verso.yaml'), 'utf-8');
+    const parsed = yaml.load(content) as Record<string, unknown>;
+    const user = parsed.user as Record<string, unknown>;
+    expect(user.id).toBeDefined();
+    expect(typeof user.id).toBe('string');
+    expect((user.id as string).length).toBeGreaterThan(0);
+  });
+
+  it('.verso.yaml has user.profile field set to solo-dev', () => {
+    initDefaults(tmpDir);
+    const content = readFileSync(join(tmpDir, '.verso.yaml'), 'utf-8');
+    const parsed = yaml.load(content) as Record<string, unknown>;
+    const user = parsed.user as Record<string, unknown>;
+    expect(user.profile).toBe('solo-dev');
+  });
+
+  it('.verso.yaml does NOT have user.role field', () => {
+    initDefaults(tmpDir);
+    const content = readFileSync(join(tmpDir, '.verso.yaml'), 'utf-8');
+    const parsed = yaml.load(content) as Record<string, unknown>;
+    const user = parsed.user as Record<string, unknown>;
+    expect(user.role).toBeUndefined();
+  });
+});

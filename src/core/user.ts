@@ -17,7 +17,7 @@ export function loadUserConfig(projectDir: string): UserConfig | null {
   }
   const contents = fs.readFileSync(filePath, 'utf-8');
   const loaded = yaml.load(contents) as UserConfig;
-  if (!loaded || !loaded.user || !loaded.user.name || !loaded.user.role) {
+  if (!loaded || !loaded.user || !loaded.user.name || !loaded.user.id || !loaded.user.profile) {
     return null;
   }
   return loaded;
@@ -30,6 +30,35 @@ export function saveUserConfig(projectDir: string, config: UserConfig): void {
   const filePath = path.join(projectDir, USER_CONFIG_FILENAME);
   const content = yaml.dump(config, { lineWidth: -1, noRefs: true });
   fs.writeFileSync(filePath, content, 'utf-8');
+}
+
+export interface GhUserInfo {
+  login: string;
+  name: string;
+  id: string;
+}
+
+/**
+ * Try to get the user's identity from GitHub CLI (gh).
+ * Returns null if gh is not installed or not authenticated.
+ */
+export function getGhUserInfo(): GhUserInfo | null {
+  try {
+    const { execSync } = require('node:child_process');
+    const output = execSync('gh api user --jq "{login: .login, name: .name, id: .node_id}"', {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    const parsed = JSON.parse(output);
+    if (!parsed.login) return null;
+    return {
+      login: parsed.login,
+      name: parsed.name || '',
+      id: parsed.id || '',
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -62,12 +91,28 @@ export function getGitUserGithub(): string {
  * Create a default UserConfig using git config values where available.
  */
 export function createDefaultUserConfig(): UserConfig {
-  const name = getGitUserName() || 'Developer';
-  const github = getGitUserGithub();
+  // Priority: gh CLI > git config > manual defaults
+  const ghInfo = getGhUserInfo();
+
+  let name: string;
+  let github: string;
+  let id: string;
+
+  if (ghInfo) {
+    name = ghInfo.name || getGitUserName() || 'Developer';
+    github = ghInfo.login;
+    id = ghInfo.login;
+  } else {
+    name = getGitUserName() || 'Developer';
+    github = getGitUserGithub();
+    id = github || name.toLowerCase().replace(/\s+/g, '-');
+  }
+
   const config: UserConfig = {
     user: {
+      id,
       name,
-      role: 'captain',
+      profile: 'solo-dev',
     },
     preferences: {
       format: 'human',
